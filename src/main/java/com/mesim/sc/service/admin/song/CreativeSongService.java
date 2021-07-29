@@ -20,7 +20,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
+import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -91,8 +94,8 @@ public class CreativeSongService extends AdminService {
     public Object add(Object data, MultipartFile[] files) throws BackendException {
         CreativeSongDto savedSongDto = (CreativeSongDto) this.save(data);
 
-        String filePath = FileUtil.makePath(this.fileBasePath, this.songPath);
-
+        String filePath = FileUtil.makePath(this.fileBasePath, this.songPath+'/'+savedSongDto.getId());
+//        String filePath = FileUtil.makePath(this.fileBasePath, this.songPath);
 //        File deleteFile = new File(FileUtil.makePath(filePath, fileName + "." + ext));
 //        if (deleteFile.exists()) {
 //            deleteFile.delete();
@@ -100,8 +103,7 @@ public class CreativeSongService extends AdminService {
 
         try {
             for (MultipartFile file : files) {
-                String fileName = file.getOriginalFilename().substring(0, file.getOriginalFilename().lastIndexOf("."));
-                FileUtil.upload(filePath, fileName, file);
+                FileUtil.upload(filePath, file.getOriginalFilename(), file);
             }
         } catch (
                 IOException e) {
@@ -111,4 +113,53 @@ public class CreativeSongService extends AdminService {
         return savedSongDto;
     }
 
+
+//    @Override
+//    public Object get(String id) {
+////        List<String> fileNameList = new ArrayList<>();
+////        String filePath = this.fileBasePath+'/'+this.songPath+'/'+id;
+////        File rw = new File(filePath);
+////
+////        /*파일 경로에 있는 파일 리스트 fileList[] 에 넣기*/
+////        File[] fileList = rw.listFiles();
+////        if(fileList != null){
+////            /*fileList에 있는거 for 문 돌려서 출력*/
+////            for(File file : fileList) {
+////                if(file.isFile()) {
+////                    String fileName =  file.getName();
+////                    fileNameList.add(fileName);
+////                    System.out.println("fileName : " + fileName);
+////                }
+////            }
+////        }
+//        Optional<Object> optEntity = this.repository.findById(id);
+//        return optEntity.map(o -> {
+//            try {
+//                return this.toDto(o, 0);
+//            } catch (Exception e) {
+//                throw new RuntimeException(e);
+//            }
+//        }).orElse(null);
+//    }
+
+
+    public Object fileList(String id){
+        List<String> fileNameList = new ArrayList<>();
+        String filePath = this.fileBasePath+'/'+this.songPath+'/'+id;
+        File rw = new File(filePath);
+
+        /*파일 경로에 있는 파일 리스트 fileList[] 에 넣기*/
+        File[] fileList = rw.listFiles();
+        if(fileList != null){
+            /*fileList에 있는거 for 문 돌려서 출력*/
+            for(File file : fileList) {
+                if(file.isFile()) {
+                    String fileName =  file.getName();
+                    fileNameList.add(fileName);
+                    System.out.println("fileName : " + fileName);
+                }
+            }
+        }
+        return fileNameList != null ? fileNameList : null ;
+    }
 }

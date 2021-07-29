@@ -75,4 +75,19 @@ public class CreativeSongController extends AdminRestController {
             throw new BackendException(this.name + " 등록 중 오류발생", e);
         }
     }
+
+    /**
+     *  파일 조회
+     *
+     * @param id 상세 조회할 데이터 ID
+     * @return 상세 정보
+     */
+    @RequestMapping(value = "file", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ApiResponseDto getFile(@RequestParam(value = "id") String id) throws BackendException {
+        try {
+            return new ApiResponseDto(true, ((CreativeSongService) service).fileList(id));
+        } catch (Exception e) {
+            throw new BackendException(this.name + " 상세 조회 중 오류발생", e);
+        }
+    }
 }

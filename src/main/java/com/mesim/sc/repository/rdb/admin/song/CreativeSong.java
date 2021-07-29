@@ -26,7 +26,7 @@ public class CreativeSong extends CrudEntity {
 
 
     @Column(name = "COMPOSER_CD")
-    private String composer_cd;
+    private String composerCd;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @NotFound(action = NotFoundAction.IGNORE)
@@ -37,10 +37,10 @@ public class CreativeSong extends CrudEntity {
     private String genre;
 
     @Column(name = "SONG_NM")
-    private String song_nm;
+    private String songNm;
 
     @Column(name = "SONG_LENGTH")
-    private String song_length;
+    private String songLength;
 
     @Column(name = "TONALITY")
     private String tonality;
@@ -52,34 +52,34 @@ public class CreativeSong extends CrudEntity {
     private String vibe;
 
     @Column(name = "INSTRUMENT_CD")
-    private String instrument_cd;
+    private String instrumentCd;
 
     @Column(name = "CREATE_DATE")
-    private Date create_date;
+    private Date createDate;
 
     @Column(name = "REFERENCE_SONG")
-    private String reference_song;
+    private String referenceSong;
 
     @Column(name = "REFERENCE_ARTIST")
-    private String reference_artist;
+    private String referenceArtist;
 
 
     @Builder
-    public CreativeSong(String id,User user, String composer_cd, String genre, String song_nm, String song_length,String tonality, String tempo, String vibe,  String instrument_cd, String reference_song, String reference_artist, Date create_date,String regId,String modId) {
+    public CreativeSong(String id,User use, String composerCd, String genre, String songNm, String songLength,String tonality, String tempo, String vibe,  String instrumentCd, String referenceSong, String referenceArtist, Date createDate,String regId,String modId) {
         super(regId, modId);
         this.id = id;
         this.user=user;
-        this.composer_cd = composer_cd;
+        this.composerCd = composerCd;
         this.genre = genre;
-        this.song_nm = song_nm;
-        this.song_length = song_length;
+        this.songNm = songNm;
+        this.songLength = songLength;
         this.tonality = tonality;
         this.tempo = tempo;
         this.vibe = vibe;
-        this.instrument_cd = instrument_cd;
-        this.create_date = create_date;
-        this.reference_song = reference_song;
-        this.reference_artist = reference_artist;
+        this.instrumentCd = instrumentCd;
+        this.createDate = createDate;
+        this.referenceSong = referenceSong;
+        this.referenceArtist = referenceArtist;
     }
 
 

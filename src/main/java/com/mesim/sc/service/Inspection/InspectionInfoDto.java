@@ -1,12 +1,13 @@
 package com.mesim.sc.service.Inspection;
 
 import com.mesim.sc.repository.rdb.admin.Inspection.InspectionInfo;
+import com.mesim.sc.service.CrudDto;
 import com.mesim.sc.service.admin.AdminDto;
 import com.mesim.sc.util.DateUtil;
 import lombok.Data;
 
 @Data
-public class InspectionInfoDto extends AdminDto {
+public class InspectionInfoDto extends CrudDto {
 
     private String inspectionId;
     private String question;

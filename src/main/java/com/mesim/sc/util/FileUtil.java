@@ -56,8 +56,9 @@ public class FileUtil {
             folder.mkdirs();
         }
 
-        String ext = FileUtil.getExt(file.getOriginalFilename());
-        File saveFile = new File(path + System.getProperty("file.separator") + name + "." + ext);
+//        String ext = FileUtil.getExt(file.getOriginalFilename());
+//        File saveFile = new File(path + System.getProperty("file.separator") + name + "." + ext);
+        File saveFile = new File(path + System.getProperty("file.separator") + name);
         file.transferTo(saveFile);
 
         return true;
