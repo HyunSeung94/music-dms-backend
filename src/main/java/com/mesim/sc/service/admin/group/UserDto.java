@@ -76,8 +76,8 @@ public class UserDto extends AdminDto {
         this.pwModDate = entity.getPwModDate()  != null ? entity.getPwModDate() : DateUtil.toFormat(entity.getRegDate().getTime());
 
         if (this.imgSrc != null) {
-            String filePath = FileUtil.makePath(FileUtil.DATA_FILE_PATH, FileUtil.INFRALAYER_FILE_PATH, this.imgSrc);
-            this.imgBase64Str = FileUtil.getImgBase64Str(filePath);
+//            String filePath = FileUtil.makePath(FileUtil.DATA_FILE_PATH, FileUtil.INFRALAYER_FILE_PATH, this.imgSrc);
+//            this.imgBase64Str = FileUtil.getImgBase64Str(filePath);
         }
     }
 

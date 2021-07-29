@@ -8,6 +8,7 @@ import org.apache.batik.transcoder.image.PNGTranscoder;
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
 import java.util.Base64;
@@ -22,36 +23,45 @@ public class FileUtil {
     public static String INFRALAYER_FILE_PATH;
     public static String EVENTALYER_FILE_PATH;
 
-
     @Value("${file.data.base.path}")
     public void setDefaultFilePath(String defaultFilePath) {
         FileUtil.DEFAULT_FILE_PATH = defaultFilePath;
     }
-
 
     @Value("${file.resource.base.path}")
     public void setResourceFilePath(String resourceFilePath) {
         FileUtil.RESOURCE_FILE_PATH = resourceFilePath;
     }
 
-
     @Value("${file.data.base.path}")
     public void setDataFilePath(String dataFilePath) {
         FileUtil.DATA_FILE_PATH = dataFilePath;
     }
-
 
     @Value("${file.data.infralayer.path}")
     public void setInfralayerFilePath(String path) {
         FileUtil.INFRALAYER_FILE_PATH = path;
     }
 
-
     @Value("${file.data.eventlayer.path}")
     public void setEventalyerFilePath(String path) {
         FileUtil.EVENTALYER_FILE_PATH = path;
     }
 
+
+    public static boolean upload(String path, String name, MultipartFile file) throws IOException {
+        File folder = new File(path);
+
+        if (!folder.exists()) {
+            folder.mkdirs();
+        }
+
+        String ext = FileUtil.getExt(file.getOriginalFilename());
+        File saveFile = new File(path + System.getProperty("file.separator") + name + "." + ext);
+        file.transferTo(saveFile);
+
+        return true;
+    }
 
     public static byte[] download(String filePath) throws BackendException {
         byte[] fileByteArray;
@@ -69,7 +79,6 @@ public class FileUtil {
                 baos.write(buf, 0, bytesRead);
             }
 
-            // Base64로 디코드된 Byte Array
             fileByteArray = baos.toByteArray();
 
         } catch (UnsupportedEncodingException e) {
@@ -79,19 +88,15 @@ public class FileUtil {
         } catch(IOException e) {
             throw new BackendException("파일 읽는 중 오류가 발생했습니다.", e);
         } finally {
-            if (baos != null) {
-                try {
+            try {
+                if (baos != null) {
                     baos.close();
-                } catch (IOException e) {
-                    throw new BackendException("ByteArrayOutputStream 자원 해제 중 오류가 발생했습니다.", e);
                 }
-            }
-            if (fis != null) {
-                try {
+                if (fis != null) {
                     fis.close();
-                } catch (IOException e) {
-                    throw new BackendException("FileInputStream 자원 해제 중 오류가 발생했습니다.", e);
                 }
+            } catch (IOException e) {
+                throw new BackendException("자원 해제 중 오류가 발생했습니다.", e);
             }
         }
 
@@ -114,7 +119,7 @@ public class FileUtil {
 
             return new File(pngFilePath);
         } catch (Exception e) {
-            throw new BackendException("이미지 변환 중 오류가 발생했습니다.", e);
+            throw new BackendException("이미지 png 변환 중 오류가 발생했습니다.", e);
         }
     }
 
@@ -144,23 +149,24 @@ public class FileUtil {
         }
     }
 
-    public static String getImgBase64Str(String imgSrcPath) {
+    public static String getImgBase64Str(String imgSrcPath) throws BackendException {
         String filePath = FileUtil.makePath(imgSrcPath);
-        log.info(filePath);
         File file = new File(filePath);
         if (file.exists()) {
             try {
                 String sourceStr;
-                if (imgSrcPath.endsWith("SVG") || imgSrcPath.endsWith("svg"))
+                if (imgSrcPath.endsWith("SVG") || imgSrcPath.endsWith("svg")) {
                     sourceStr = "svg+xml";
-                else
+                } else {
                     sourceStr = imgSrcPath.substring(imgSrcPath.lastIndexOf(".") + 1);
+                }
                 String base64Str = "data:image/" + sourceStr + ";base64," + Base64.getEncoder().encodeToString(FileUtils.readFileToByteArray(file));
                 return base64Str;
-            } catch(IOException e) {
-                log.error(e.getMessage());
+            } catch (IOException e) {
+                throw new BackendException("이미지 인코딩 중 오류가 발생했습니다.", e);
             }
         }
         return null;
     }
 }
+

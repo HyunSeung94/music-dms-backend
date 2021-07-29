@@ -8,15 +8,19 @@ import com.mesim.sc.repository.rdb.admin.AdminSpecs;
 import com.mesim.sc.repository.rdb.admin.song.CreativeSong;
 import com.mesim.sc.repository.rdb.admin.song.CreativeSongRepository;
 import com.mesim.sc.service.admin.AdminService;
+import com.mesim.sc.util.FileUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -24,6 +28,12 @@ import java.util.stream.Collectors;
 @Service
 @Qualifier("creativeSongService")
 public class CreativeSongService extends AdminService {
+
+    @Value("${file.data.base.path}")
+    private String fileBasePath;
+
+    @Value("${file.data.song.path}")
+    private String songPath;
 
     @Autowired
     @Qualifier("creativeSongRepository")
@@ -36,7 +46,6 @@ public class CreativeSongService extends AdminService {
         this.searchFields = new String[]{"id", "genre","composer","lyricist"};
         super.init();
     }
-
 
     public PageWrapper getListPage(String typeCd, int index, int size, String[] sortProperties, String[] keywords, String searchOp) throws BackendException {
         Specification<Object> spec = AdminSpecs.typeCd(typeCd);
@@ -79,5 +88,27 @@ public class CreativeSongService extends AdminService {
         return this.toDto(result, 0);
     }
 
+    public Object add(Object data, MultipartFile[] files) throws BackendException {
+        CreativeSongDto savedSongDto = (CreativeSongDto) this.save(data);
+
+        String filePath = FileUtil.makePath(this.fileBasePath, this.songPath);
+
+//        File deleteFile = new File(FileUtil.makePath(filePath, fileName + "." + ext));
+//        if (deleteFile.exists()) {
+//            deleteFile.delete();
+//        }
+
+        try {
+            for (MultipartFile file : files) {
+                String fileName = file.getOriginalFilename().substring(0, file.getOriginalFilename().lastIndexOf("."));
+                FileUtil.upload(filePath, fileName, file);
+            }
+        } catch (
+                IOException e) {
+            throw new BackendException("파일 업로드 중 오류 발생", e);
+        }
+
+        return savedSongDto;
+    }
 
 }

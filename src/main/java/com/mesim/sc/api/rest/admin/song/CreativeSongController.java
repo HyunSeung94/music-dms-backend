@@ -11,8 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @RestController
@@ -60,6 +59,18 @@ public class CreativeSongController extends AdminRestController {
     public ApiResponseDto add(@RequestBody Object o) throws BackendException {
         try {
             return new ApiResponseDto(true, ((CreativeSongService) service).save(o));
+        } catch (Exception e) {
+            throw new BackendException(this.name + " 등록 중 오류발생", e);
+        }
+    }
+
+    @RequestMapping(value = "upload", method = RequestMethod.POST, produces = MediaType.ALL_VALUE)
+    public ApiResponseDto upload(
+            @RequestPart(value = "data") Object data,
+            @RequestPart(value = "files") MultipartFile[] files
+    ) throws BackendException {
+        try {
+            return new ApiResponseDto(true, ((CreativeSongService) service).add(data, files));
         } catch (Exception e) {
             throw new BackendException(this.name + " 등록 중 오류발생", e);
         }
