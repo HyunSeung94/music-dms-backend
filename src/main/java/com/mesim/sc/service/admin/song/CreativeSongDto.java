@@ -11,6 +11,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 
 import java.sql.Date;
 import java.sql.Timestamp;
+import java.util.List;
 
 
 @Data
@@ -30,7 +31,7 @@ public class CreativeSongDto extends CrudDto {
     private String referenceSong;
     private String referenceArtist;
     private String createDate;
-
+    private List fileList;
 
     public CreativeSongDto() {}
 
