@@ -8,6 +8,8 @@ import com.mesim.sc.repository.rdb.admin.authority.AuthorityMenuMapperRepository
 import com.mesim.sc.repository.rdb.admin.authority.AuthorityRepository;
 import com.mesim.sc.repository.rdb.admin.code.CodeRepository;
 import com.mesim.sc.repository.rdb.admin.code.CodeTypeRepository;
+import com.mesim.sc.repository.rdb.admin.consortium.Consortium;
+import com.mesim.sc.repository.rdb.admin.consortium.ConsortiumRepository;
 import com.mesim.sc.repository.rdb.admin.group.GroupRepository;
 import com.mesim.sc.repository.rdb.admin.group.UserRepository;
 
@@ -22,6 +24,7 @@ import com.mesim.sc.service.admin.authority.AuthorityInfraTypeMapperDto;
 import com.mesim.sc.service.admin.authority.AuthorityMenuMapperDto;
 import com.mesim.sc.service.admin.code.CodeDto;
 import com.mesim.sc.service.admin.code.CodeTypeDto;
+import com.mesim.sc.service.admin.consortium.ConsortiumDto;
 import com.mesim.sc.service.admin.group.GroupDto;
 import com.mesim.sc.service.admin.group.UserDto;
 import com.mesim.sc.service.admin.menu.MenuDto;
@@ -62,6 +65,8 @@ public abstract class AdminService extends CrudService {
             clazz = InspectionInfoDto.class;
         } else if (this.repository instanceof InspectionRepository) {
             clazz = InspectionDto.class;
+        } else if (this.repository instanceof ConsortiumRepository) {
+            clazz = ConsortiumDto.class;
         }
 
         if (clazz == null) {

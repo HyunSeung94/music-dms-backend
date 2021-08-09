@@ -1,8 +1,7 @@
 package com.mesim.sc.repository.rdb.admin.consortium;
 
 import com.mesim.sc.repository.rdb.CrudEntity;
-import com.mesim.sc.repository.rdb.admin.code.CodePk;
-import com.mesim.sc.repository.rdb.admin.code.CodeType;
+
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

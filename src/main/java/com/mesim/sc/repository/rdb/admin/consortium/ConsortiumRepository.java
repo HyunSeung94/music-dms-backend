@@ -1,7 +1,6 @@
 package com.mesim.sc.repository.rdb.admin.consortium;
 
 import com.mesim.sc.repository.rdb.admin.AdminRepository;
-import com.mesim.sc.repository.rdb.admin.code.CodePk;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
