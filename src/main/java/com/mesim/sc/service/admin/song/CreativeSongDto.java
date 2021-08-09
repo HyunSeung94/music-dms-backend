@@ -15,7 +15,8 @@ import java.util.List;
 
 
 @Data
-public class CreativeSongDto extends CrudDto {
+
+public class CreativeSongDto extends AdminDto {
 
     private String id;
     private String composerCd;

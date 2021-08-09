@@ -7,7 +7,7 @@ import com.mesim.sc.util.DateUtil;
 import lombok.Data;
 
 @Data
-public class InspectionDto extends CrudDto {
+public class InspectionDto extends AdminDto {
 
     private String id;
     private String inspectionId;

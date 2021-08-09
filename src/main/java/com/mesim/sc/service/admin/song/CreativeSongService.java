@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -95,12 +96,7 @@ public class CreativeSongService extends AdminService {
     public Object add(Object data, MultipartFile[] files) throws BackendException {
         CreativeSongDto savedSongDto = (CreativeSongDto) this.save(data);
 
-        String filePath = FileUtil.makePath(this.fileBasePath, this.songPath+'/'+savedSongDto.getId());
-//        String filePath = FileUtil.makePath(this.fileBasePath, this.songPath);
-//        File deleteFile = new File(FileUtil.makePath(filePath, fileName + "." + ext));
-//        if (deleteFile.exists()) {
-//            deleteFile.delete();
-//        }
+        String filePath = FileUtil.makePath(this.fileBasePath, this.songPath+System.getProperty("file.separator")+savedSongDto.getId());
 
         try {
             for (MultipartFile file : files) {
@@ -114,24 +110,57 @@ public class CreativeSongService extends AdminService {
         return savedSongDto;
     }
 
+    public byte[] fileDownload(String id,String fileName)  throws BackendException {
+        String filePath = FileUtil.makePath(this.fileBasePath, this.songPath+System.getProperty("file.separator")+id+System.getProperty("file.separator")+fileName);
+        return FileUtil.download(filePath);
+    }
 
-//    @Override
-    public Object get(String id) {
-        List<String> fileNameList = new ArrayList<>();
-        String filePath = this.fileBasePath+'/'+this.songPath+'/'+id;
-        File rw = new File(filePath);
+    public byte[] fileAllDownload(String id)  throws BackendException {
 
-        /*파일 경로에 있는 파일 리스트 fileList[] 에 넣기*/
-        File[] fileList = rw.listFiles();
-        if(fileList != null){
-            /*fileList에 있는거 for 문 돌려서 출력*/
-            for(File file : fileList) {
-                if(file.isFile()) {
-                    String fileName =  file.getName();
-                    fileNameList.add(fileName);
-                }
-            }
+        String filePath = FileUtil.makePath(this.fileBasePath, this.songPath+System.getProperty("file.separator")+id);
+        String outPath = FileUtil.makePath(this.fileBasePath, this.songPath+System.getProperty("file.separator")+id);
+        List<String> fileList = FileUtil.fileList(filePath);
+        File zipFile = FileUtil.compress(outPath,filePath,fileList);
+        String zipFilePath = FileUtil.makePath(this.fileBasePath, this.songPath+System.getProperty("file.separator")+id+System.getProperty("file.separator")+zipFile.getName());
+        byte[] zipFileByte = FileUtil.download(zipFilePath);
+
+        File deleteFile = new File(zipFilePath);
+        if (deleteFile.exists()) {
+            deleteFile.delete();
         }
+
+        return zipFileByte;
+
+    }
+
+
+    @Override
+    public boolean delete(Object o) throws BackendException {
+        Map<String, Object> map = (Map<String, Object>) o;
+        List<Object> deleteObjects =((List<Object>) map.get("ids"))
+                .stream()
+                .map(ExceptionHandler.wrap(object -> this.toEntity(object)))
+                .collect(Collectors.toList());
+        this.repository.deleteAll(deleteObjects);
+
+        List<Map<String,Object>> list = (List<Map<String, Object>>) map.get("ids");
+        for (int i=0; i<list.size(); i++){
+
+            String id = list.get(i).get("id").toString();
+            String filePath = FileUtil.makePath(this.fileBasePath, this.songPath+System.getProperty("file.separator")+id);
+
+            FileUtil.deleteFile(filePath);
+        }
+
+
+        return true;
+    }
+
+    @Override
+    public Object get(String id) {
+        String filePath = this.fileBasePath+System.getProperty("file.separator")+this.songPath+System.getProperty("file.separator")+id;
+        List<String> fileNameList = FileUtil.fileList(filePath);
+
         Optional<Object> optEntity = this.repository.findById(id);
 
         return optEntity.map(o -> {
@@ -146,24 +175,4 @@ public class CreativeSongService extends AdminService {
         }).orElse(null);
     }
 
-
-    public Object fileList(String id){
-        List<String> fileNameList = new ArrayList<>();
-        String filePath = this.fileBasePath+'/'+this.songPath+'/'+id;
-        File rw = new File(filePath);
-
-        /*파일 경로에 있는 파일 리스트 fileList[] 에 넣기*/
-        File[] fileList = rw.listFiles();
-        if(fileList != null){
-            /*fileList에 있는거 for 문 돌려서 출력*/
-            for(File file : fileList) {
-                if(file.isFile()) {
-                    String fileName =  file.getName();
-                    fileNameList.add(fileName);
-                    System.out.println("fileName : " + fileName);
-                }
-            }
-        }
-        return fileNameList != null ? fileNameList : null ;
-    }
 }

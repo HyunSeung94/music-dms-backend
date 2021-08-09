@@ -64,6 +64,13 @@ public class CreativeSongController extends AdminRestController {
         }
     }
 
+    /**
+     * 파일 업로드
+     * @param data
+     * @param files
+     * @return
+     * @throws BackendException
+     */
     @RequestMapping(value = "upload", method = RequestMethod.POST, produces = MediaType.ALL_VALUE)
     public ApiResponseDto upload(
             @RequestPart(value = "data") Object data,
@@ -77,15 +84,31 @@ public class CreativeSongController extends AdminRestController {
     }
 
     /**
-     *  파일 조회
+     *  파일 다운로드
      *
      * @param id 상세 조회할 데이터 ID
      * @return 상세 정보
      */
-    @RequestMapping(value = "file", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ApiResponseDto getFile(@RequestParam(value = "id") String id) throws BackendException {
+    @RequestMapping(value = "getFile", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ApiResponseDto getFile(@RequestParam(value = "id") String id,
+                                  @RequestParam(value = "fileName") String fileName) throws BackendException {
         try {
-            return new ApiResponseDto(true, ((CreativeSongService) service).fileList(id));
+            return new ApiResponseDto(true, ((CreativeSongService) service).fileDownload(id,fileName));
+        } catch (Exception e) {
+            throw new BackendException(this.name + " 상세 조회 중 오류발생", e);
+        }
+    }
+
+    /**
+     *  파일 전체 다운로드
+     *
+     * @param id 상세 조회할 데이터 ID
+     * @return 상세 정보
+     */
+    @RequestMapping(value = "getFileAll", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ApiResponseDto getFileAll(@RequestParam(value = "id") String id) throws BackendException {
+        try {
+            return new ApiResponseDto(true, ((CreativeSongService) service).fileAllDownload(id));
         } catch (Exception e) {
             throw new BackendException(this.name + " 상세 조회 중 오류발생", e);
         }
