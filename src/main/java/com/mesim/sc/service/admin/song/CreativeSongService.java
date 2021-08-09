@@ -40,6 +40,9 @@ public class CreativeSongService extends AdminService {
     @Value("${file.data.song.path}")
     private String songPath;
 
+    @Value("${file.data.temp.path}")
+    private String fileTempPath;
+
     @Autowired
     @Qualifier("creativeSongRepository")
     public void setRepository(CrudRepository repository) {
@@ -97,13 +100,14 @@ public class CreativeSongService extends AdminService {
         CreativeSongDto savedSongDto = (CreativeSongDto) this.save(data);
 
         String filePath = FileUtil.makePath(this.fileBasePath, this.songPath+System.getProperty("file.separator")+savedSongDto.getId());
+        String tempPath = FileUtil.makePath(this.fileBasePath, this.fileTempPath);
+
 
         try {
             for (MultipartFile file : files) {
-                FileUtil.upload(filePath, file.getOriginalFilename(), file);
+                FileUtil.moveFile(filePath,file.getOriginalFilename(),tempPath);
             }
-        } catch (
-                IOException e) {
+        } catch (IOException e) {
             throw new BackendException("파일 업로드 중 오류 발생", e);
         }
 

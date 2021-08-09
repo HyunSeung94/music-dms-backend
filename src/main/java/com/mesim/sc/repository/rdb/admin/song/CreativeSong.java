@@ -2,6 +2,7 @@ package com.mesim.sc.repository.rdb.admin.song;
 
 import com.mesim.sc.repository.rdb.CrudEntity;
 
+import com.mesim.sc.repository.rdb.admin.consortium.Consortium;
 import com.mesim.sc.repository.rdb.admin.group.User;
 import lombok.Builder;
 import lombok.Getter;
@@ -30,8 +31,8 @@ public class CreativeSong extends CrudEntity {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @NotFound(action = NotFoundAction.IGNORE)
-    @JoinColumn(name="COMPOSER_CD", referencedColumnName="USER_CD", insertable = false, updatable = false)
-    private User user;
+    @JoinColumn(name="COMPOSER_CD", referencedColumnName="CONSORTIUM_ID", insertable = false, updatable = false)
+    private Consortium consortium;
 
     @Column(name = "GENRE")
     private String genre;
@@ -65,10 +66,10 @@ public class CreativeSong extends CrudEntity {
 
 
     @Builder
-    public CreativeSong(String id,User use, String composerCd, String genre, String songNm, String songLength,String tonality, String tempo, String vibe,  String instrumentCd, String referenceSong, String referenceArtist, Date createDate,String regId,String modId) {
+    public CreativeSong(String id,Consortium consortium, String composerCd, String genre, String songNm, String songLength,String tonality, String tempo, String vibe,  String instrumentCd, String referenceSong, String referenceArtist, Date createDate,String regId,String modId) {
         super(regId, modId);
         this.id = id;
-        this.user=user;
+        this.consortium=consortium;
         this.composerCd = composerCd;
         this.genre = genre;
         this.songNm = songNm;

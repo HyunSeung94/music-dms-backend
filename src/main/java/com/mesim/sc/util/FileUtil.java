@@ -29,6 +29,7 @@ public class FileUtil {
     public static String EVENTALYER_FILE_PATH;
     public static int BUF_SIZE = 1024;
 
+
     @Value("${file.data.base.path}")
     public void setDefaultFilePath(String defaultFilePath) {
         FileUtil.DEFAULT_FILE_PATH = defaultFilePath;
@@ -62,10 +63,22 @@ public class FileUtil {
             folder.mkdirs();
         }
 
-//        String ext = FileUtil.getExt(file.getOriginalFilename());
-//        File saveFile = new File(path + System.getProperty("file.separator") + name + "." + ext);
         File saveFile = new File(path + System.getProperty("file.separator") + name);
         file.transferTo(saveFile);
+
+        return true;
+    }
+
+    public static boolean moveFile(String path, String name,String fileTempPath) throws IOException {
+        File folder = new File(path);
+
+            if (!folder.exists()) {
+                folder.mkdirs();
+            }
+
+            File tempFile = new File (fileTempPath+ System.getProperty("file.separator") + name);
+            File saveFile = new File(path + System.getProperty("file.separator") + name);
+            tempFile.renameTo(saveFile);
 
         return true;
     }

@@ -20,7 +20,7 @@ public class CodeRestController extends AdminRestController {
 
     @Override
     @Autowired
-    @Qualifier("consortiumService")
+    @Qualifier("codeService")
     public void setService(CrudService service) {
         this.name = "공통코드";
         this.service = service;

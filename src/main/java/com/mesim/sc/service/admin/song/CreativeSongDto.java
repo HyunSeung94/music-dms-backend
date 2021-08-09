@@ -41,8 +41,8 @@ public class CreativeSongDto extends AdminDto {
     public CreativeSongDto(CreativeSong entity) {
         this.id = entity.getId();
         this.composerCd = entity.getComposerCd();
-        this.composerRole = entity.getUser() != null ? entity.getUser().getRole() : null;
-        this.composerNm = entity.getUser() != null ? entity.getUser().getName() : null;
+        this.composerRole = entity.getConsortium() != null ? entity.getConsortium().getRole() : null;
+        this.composerNm = entity.getConsortium() != null ? entity.getConsortium().getConsortiumNm() : null;
         this.genre = entity.getGenre();
         this.songNm = entity.getSongNm();
         this.songLength = entity.getSongLength();

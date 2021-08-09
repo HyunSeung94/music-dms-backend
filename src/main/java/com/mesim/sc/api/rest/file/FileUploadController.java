@@ -4,12 +4,12 @@ import com.mesim.sc.api.ApiResponseDto;
 import com.mesim.sc.exception.BackendException;
 import com.mesim.sc.util.FileUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.disk.DiskFileItem;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -26,6 +26,10 @@ public class FileUploadController {
     @Value("${file.data.base.path}")
     private String fileBasePath;
 
+    @Value("${file.data.temp.path}")
+    private String fileTempPath;
+
+
     // Cache 타입
     private static class Node {
         String fileName;
@@ -35,12 +39,25 @@ public class FileUploadController {
     }
 
     @RequestMapping(value = "upload", method = RequestMethod.POST, produces = MediaType.ALL_VALUE)
-    public ApiResponseDto upload(@RequestBody Map o) throws BackendException {
+    public ApiResponseDto upload(@RequestPart(value = "file") MultipartFile[] files) throws BackendException {
         try {
-            return uploadFile(o);
+            return uploadTempFile(files);
+//            return null;
         } catch (Exception e) {
             throw new BackendException("파일 업로드 중 오류발생", e);
         }
+    }
+
+    public ApiResponseDto uploadTempFile(MultipartFile[] files) throws IOException{
+
+        String filePath = FileUtil.makePath(this.fileBasePath, this.fileTempPath);
+
+        for (MultipartFile file : files) {
+            System.out.println(file.getOriginalFilename());
+            FileUtil.upload(filePath, file.getOriginalFilename(), file);
+        }
+
+        return new ApiResponseDto(true);
     }
 
     public ApiResponseDto uploadFile(Map request) throws IOException {
