@@ -26,6 +26,9 @@ public abstract class CrudRestController {
     @Value("${csv.temp.file}")
     private String csvFileName;
 
+    @Value("${file.data.song.path}")
+    private String songPath;
+
     protected String name;
 
     protected CrudService service;
@@ -300,4 +303,8 @@ public abstract class CrudRestController {
             throw new BackendException(this.name + " 다운로드 중 오류발생", e);
         }
     }
+
+
+
+
 }

@@ -114,4 +114,14 @@ public class CreativeSongController extends AdminRestController {
             throw new BackendException(this.name + " 상세 조회 중 오류발생", e);
         }
     }
+
+    @RequestMapping(value = "getSound", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ApiResponseDto audio(@RequestParam(value = "id") String id,
+                                @RequestParam(value = "fileName") String fileName) throws BackendException {
+        try {
+            return new ApiResponseDto(true, ((CreativeSongService) service).getSound(id,fileName));
+        } catch (Exception e) {
+            throw new BackendException(this.name + " 다운로드 중 오류발생", e);
+        }
+    }
 }

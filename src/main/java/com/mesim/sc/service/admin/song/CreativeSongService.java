@@ -179,4 +179,18 @@ public class CreativeSongService extends AdminService {
         }).orElse(null);
     }
 
+    public String getSound(String songCd,String fileName) throws BackendException {
+        String soundPath = FileUtil.makePath(this.fileBasePath, this.songPath+System.getProperty("file.separator")+songCd+System.getProperty("file.separator")+fileName);
+        File soundFile = new File(soundPath);
+        try {
+            if (soundFile != null) {
+                return FileUtil.getAudioBase64Str(soundPath);
+            } else {
+                throw new BackendException("사운드 없음");
+            }
+        } catch (Exception e) {
+            throw new BackendException("사운드 읽는 중 오류발생", e);
+        }
+    }
+
 }

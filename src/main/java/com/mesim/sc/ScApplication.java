@@ -19,7 +19,7 @@ public class ScApplication {
 	@Bean(name = "multipartResolver")
 	public CommonsMultipartResolver commonsMultipartResolver() {
 		final CommonsMultipartResolver commonsMultipartResolver = new CommonsMultipartResolver();
-		commonsMultipartResolver.setMaxUploadSize(2000000);
+		commonsMultipartResolver.setMaxUploadSize(100000000);
 		return commonsMultipartResolver;
 	}
 }

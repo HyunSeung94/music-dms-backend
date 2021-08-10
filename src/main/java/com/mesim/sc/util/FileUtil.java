@@ -27,7 +27,7 @@ public class FileUtil {
     public static String DATA_FILE_PATH;
     public static String INFRALAYER_FILE_PATH;
     public static String EVENTALYER_FILE_PATH;
-    public static int BUF_SIZE = 1024;
+    public static int BUF_SIZE = 1024 * 1024 * 100;
 
 
     @Value("${file.data.base.path}")
@@ -298,5 +298,23 @@ public class FileUtil {
 
         return zipFile;
     }
+
+    public static String getAudioBase64Str(String imgSrcPath) {
+        String filePath = FileUtil.makePath(imgSrcPath);
+        log.info(filePath);
+        File file = new File(filePath);
+        if (file.exists()) {
+            try {
+                String sourceStr;
+                sourceStr = imgSrcPath.substring(imgSrcPath.lastIndexOf(".") + 1);
+                String base64Str = "data:audio/" + sourceStr + ";base64," + Base64.getEncoder().encodeToString(FileUtils.readFileToByteArray(file));
+                return base64Str;
+            } catch(IOException e) {
+                log.error(e.getMessage());
+            }
+        }
+        return null;
+    }
+
 }
 
