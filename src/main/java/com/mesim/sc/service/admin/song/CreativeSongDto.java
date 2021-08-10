@@ -18,7 +18,7 @@ import java.util.List;
 
 public class CreativeSongDto extends AdminDto {
 
-    private String id;
+    private String songCd;
     private String composerCd;
     private String genre;
     private String composerNm;
@@ -39,7 +39,7 @@ public class CreativeSongDto extends AdminDto {
 
 
     public CreativeSongDto(CreativeSong entity) {
-        this.id = entity.getId();
+        this.songCd = entity.getSongCd();
         this.composerCd = entity.getComposerCd();
         this.composerRole = entity.getConsortium() != null ? entity.getConsortium().getRole() : null;
         this.composerNm = entity.getConsortium() != null ? entity.getConsortium().getConsortiumNm() : null;
@@ -62,7 +62,7 @@ public class CreativeSongDto extends AdminDto {
     @Override
     public CreativeSong toEntity() {
         return CreativeSong.builder()
-                .id(this.id)
+                .songCd(this.songCd)
                 .composerCd(this.composerCd)
                 .genre(this.genre)
                 .songNm(this.songNm)

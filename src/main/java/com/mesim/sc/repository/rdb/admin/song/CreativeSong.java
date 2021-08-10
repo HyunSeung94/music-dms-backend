@@ -22,8 +22,8 @@ import java.sql.Date;
 public class CreativeSong extends CrudEntity {
 
     @Id
-    @Column(name = "MUSIC_CD")
-    private String id;
+    @Column(name = "SONG_CD")
+    private String songCd;
 
 
     @Column(name = "COMPOSER_CD")
@@ -66,9 +66,9 @@ public class CreativeSong extends CrudEntity {
 
 
     @Builder
-    public CreativeSong(String id,Consortium consortium, String composerCd, String genre, String songNm, String songLength,String tonality, String tempo, String vibe,  String instrumentCd, String referenceSong, String referenceArtist, Date createDate,String regId,String modId) {
+    public CreativeSong(String songCd,Consortium consortium, String composerCd, String genre, String songNm, String songLength,String tonality, String tempo, String vibe,  String instrumentCd, String referenceSong, String referenceArtist, Date createDate,String regId,String modId) {
         super(regId, modId);
-        this.id = id;
+        this.songCd = songCd;
         this.consortium=consortium;
         this.composerCd = composerCd;
         this.genre = genre;
