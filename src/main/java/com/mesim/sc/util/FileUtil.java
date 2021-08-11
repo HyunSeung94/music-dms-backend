@@ -301,7 +301,6 @@ public class FileUtil {
 
     public static String getAudioBase64Str(String imgSrcPath) {
         String filePath = FileUtil.makePath(imgSrcPath);
-        log.info(filePath);
         File file = new File(filePath);
         if (file.exists()) {
             try {
@@ -314,6 +313,52 @@ public class FileUtil {
             }
         }
         return null;
+    }
+
+    public static byte[] getAudioBase64Byte(String imgSrcPath) throws BackendException {
+        String filePath = FileUtil.makePath(imgSrcPath);
+
+        byte[] fileByteArray;
+
+        FileInputStream fis = null;
+        ByteArrayOutputStream baos = null;
+
+        try {
+            fis = new FileInputStream(filePath);
+            baos = new ByteArrayOutputStream();
+            int bytesRead = -1;
+            int size = fis.available();
+            if (size == 0) {
+                return null;
+            }
+            byte[] buf = new byte[size];
+            while ((bytesRead = fis.read(buf)) != -1) {
+                baos.write(buf, 0, bytesRead);
+            }
+
+            fileByteArray = baos.toByteArray();
+
+        } catch (UnsupportedEncodingException e) {
+            throw new BackendException("지원하지 않는 인코딩입니다.", e);
+        } catch (FileNotFoundException e) {
+            throw new BackendException("파일을 찾을 수 없습니다.", e);
+        } catch(IOException e) {
+            throw new BackendException("파일 읽는 중 오류가 발생했습니다.", e);
+        } finally {
+            try {
+                if (baos != null) {
+                    baos.close();
+                }
+                if (fis != null) {
+                    fis.close();
+                }
+            } catch (IOException e) {
+                throw new BackendException("자원 해제 중 오류가 발생했습니다.", e);
+            }
+        }
+
+        return fileByteArray;
+
     }
 
 }
