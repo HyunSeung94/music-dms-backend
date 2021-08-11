@@ -21,7 +21,7 @@ public abstract class CrudRestController {
     private String fileBasePath;
 
     @Value("${file.data.temp.path}")
-    private String csvPath;
+    private String tempPath;
 
     @Value("${csv.temp.file}")
     private String csvFileName;
@@ -298,7 +298,16 @@ public abstract class CrudRestController {
     @RequestMapping(value = "exportCSV", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ApiResponseDto exportCSV() throws BackendException {
         try {
-            return new ApiResponseDto(true, FileUtil.download(FileUtil.makePath(fileBasePath, csvPath, csvFileName)));
+            return new ApiResponseDto(true, FileUtil.download(FileUtil.makePath(fileBasePath, tempPath, csvFileName)));
+        } catch (Exception e) {
+            throw new BackendException(this.name + " 다운로드 중 오류발생", e);
+        }
+    }
+
+    @RequestMapping(value = "deleteTempFile", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ApiResponseDto deleteTempFile() throws BackendException {
+        try {
+            return new ApiResponseDto(true, FileUtil.deleteFile(FileUtil.makePath(fileBasePath, tempPath)));
         } catch (Exception e) {
             throw new BackendException(this.name + " 다운로드 중 오류발생", e);
         }

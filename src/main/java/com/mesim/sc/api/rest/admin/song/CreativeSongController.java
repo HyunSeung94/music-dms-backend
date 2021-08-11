@@ -115,13 +115,14 @@ public class CreativeSongController extends AdminRestController {
         }
     }
 
-    @RequestMapping(value = "getSound", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "getFiletoByte", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public byte[] audio(@RequestParam(value = "id") String id,
-                                @RequestParam(value = "fileName") String fileName) throws BackendException {
+                        @RequestParam(value = "fileName") String fileName) throws BackendException {
         try {
-            return ((CreativeSongService) service).getSound(id,fileName);
+            return ((CreativeSongService) service).getFiletoByte(id,fileName);
         } catch (Exception e) {
             throw new BackendException(this.name + " 다운로드 중 오류발생", e);
         }
     }
+
 }

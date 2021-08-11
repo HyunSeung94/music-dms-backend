@@ -213,7 +213,7 @@ public class FileUtil {
         return fileNameList;
     }
 
-    public static void deleteFile(String path){
+    public static String deleteFile(String path){
         File deleteFolder = new File(path);
 
         if(deleteFolder.exists()){
@@ -228,7 +228,9 @@ public class FileUtil {
                 deleteFolderList[i].delete();
             }
             deleteFolder.delete();
+            return deleteFolderList.toString() ;
         }
+        return deleteFolder.toString();
     }
 
     public static File compress(String outPath, String filePath, List<String> fileList) throws BackendException {

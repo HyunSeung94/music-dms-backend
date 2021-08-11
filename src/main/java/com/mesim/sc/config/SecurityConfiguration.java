@@ -47,11 +47,14 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/**/**").permitAll()
                 .antMatchers("/api/**/**/**").permitAll()
                 .antMatchers("/api/**/**/**/**").permitAll()
-                .antMatchers("/api/**/**").permitAll()
-                .antMatchers("/api/**/**/**").permitAll()
-                .antMatchers("/api/**/**/**/**").permitAll()
+                .antMatchers("/api/**/**").authenticated()
+                .antMatchers("/api/**/**/**").authenticated()
+                .antMatchers("/api/**/**/**/**").authenticated()
                 .antMatchers("/api/auth/login").permitAll()
                 .antMatchers("/api/event/layer/image/**/**").permitAll()
+                .antMatchers("/api/admin/song/getSound/**").permitAll()
+                .antMatchers("/api/admin/song/getSound/**/**").permitAll()
+                .antMatchers("/api/admin/song/getFiletoByte").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .addFilter(new JwtAuthenticationFilter(authenticationManager(), getApplicationContext()))
@@ -70,7 +73,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/admin/infralayer/image/**/**")
                 .antMatchers("/api/admin/map/minimap/geojson")
                 .antMatchers("/api/event/layer/image/**/**")
-                .antMatchers("/api/service5/mtm112/**");
+                .antMatchers("/api/service5/mtm112/**")
+                .antMatchers("/api/admin/song/getFiletoByte");
     }
 
     @Override
