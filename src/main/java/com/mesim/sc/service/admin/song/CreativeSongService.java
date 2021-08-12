@@ -107,7 +107,7 @@ public class CreativeSongService extends AdminService {
     public Object add(Object data, MultipartFile[] files) throws BackendException {
         CreativeSongDto savedSongDto = (CreativeSongDto) this.save(data);
 
-        String filePath = FileUtil.makePath(this.fileBasePath, this.songPath, savedSongDto.getSongCd());
+        String filePath = FileUtil.makePath(this.fileBasePath, this.songPath, savedSongDto.getId());
         String tempPath = FileUtil.makePath(this.fileBasePath, this.fileTempPath);
 
         try {

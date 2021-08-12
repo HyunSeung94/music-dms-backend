@@ -22,8 +22,7 @@ public class CreativeSong extends CrudEntity {
 
     @Id
     @Column(name = "SONG_CD")
-    private String songCd;
-
+    private String id;
 
     @Column(name = "COMPOSER_CD")
     private String composerCd;
@@ -65,9 +64,26 @@ public class CreativeSong extends CrudEntity {
 
 
     @Builder
-    public CreativeSong(String songCd,Consortium consortium, String composerCd, String genre, String songNm, String songLength,String tonality, String tempo, String vibe,  String instrumentCd, String referenceSong, String referenceArtist, Date createDate,String regId,String modId) {
+    public CreativeSong(
+            String id,
+            Consortium consortium,
+            String composerCd,
+            String genre,
+            String songNm,
+            String songLength,
+            String tonality,
+            String tempo,
+            String vibe,
+            String instrumentCd,
+            String referenceSong,
+            String referenceArtist,
+            Date createDate,
+            String regId,
+            String modId
+    ) {
         super(regId, modId);
-        this.songCd = songCd;
+
+        this.id = id;
         this.consortium=consortium;
         this.composerCd = composerCd;
         this.genre = genre;

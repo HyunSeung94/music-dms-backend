@@ -5,16 +5,16 @@ import com.mesim.sc.service.admin.AdminDto;
 import com.mesim.sc.util.DateUtil;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.sql.Date;
 import java.util.List;
 
-
+@EqualsAndHashCode(callSuper = true)
 @Data
-
 public class CreativeSongDto extends AdminDto {
 
-    private String songCd;
+    private String id;
     private String composerCd;
     private String genre;
     private String composerNm;
@@ -32,10 +32,8 @@ public class CreativeSongDto extends AdminDto {
 
     public CreativeSongDto() {}
 
-
-
     public CreativeSongDto(CreativeSong entity) {
-        this.songCd = entity.getSongCd();
+        this.id = entity.getId();
         this.composerCd = entity.getComposerCd();
         this.composerRole = entity.getConsortium() != null ? entity.getConsortium().getRole() : null;
         this.composerNm = entity.getConsortium() != null ? entity.getConsortium().getConsortiumNm() : null;
@@ -58,7 +56,7 @@ public class CreativeSongDto extends AdminDto {
     @Override
     public CreativeSong toEntity() {
         return CreativeSong.builder()
-                .songCd(this.songCd)
+                .id(this.id)
                 .composerCd(this.composerCd)
                 .genre(this.genre)
                 .songNm(this.songNm)
