@@ -16,7 +16,7 @@ public class InspectionInfo extends CrudEntity {
 
     @Id
     @Column(name = "INSPECTION_ID")
-    private String id;
+    private String inspectionId;
 
     @Column(name = "QUESTION")
     private String question;
@@ -26,7 +26,7 @@ public class InspectionInfo extends CrudEntity {
 
     @Builder
     public InspectionInfo(
-            String id,
+            String inspectionId,
             String question,
             String inspectionCd,
             String regId,
@@ -34,7 +34,7 @@ public class InspectionInfo extends CrudEntity {
     ) {
         super(regId, modId);
 
-        this.id = id;
+        this.inspectionId = inspectionId;
         this.question = question;
         this.inspectionCd = inspectionCd;
     }

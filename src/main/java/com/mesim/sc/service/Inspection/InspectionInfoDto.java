@@ -11,14 +11,14 @@ import lombok.EqualsAndHashCode;
 @Data
 public class InspectionInfoDto extends CrudDto {
 
-    private String id;
+    private String inspectionId;
     private String question;
     private String inspectionCd;
 
     public InspectionInfoDto() {}
 
     public InspectionInfoDto(InspectionInfo entity) {
-        this.id = entity.getId();
+        this.inspectionId = entity.getInspectionId();
         this.question = entity.getQuestion();
         this.inspectionCd = entity.getInspectionCd();
         this.regId = entity.getRegId();
@@ -30,7 +30,7 @@ public class InspectionInfoDto extends CrudDto {
     @Override
     public InspectionInfo toEntity() {
         return InspectionInfo.builder()
-                .id(this.id)
+                .inspectionId(this.inspectionId)
                 .question(this.question)
                 .inspectionCd(this.inspectionCd)
                 .regId(this.regId)
