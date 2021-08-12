@@ -1,28 +1,20 @@
 package com.mesim.sc.service.auth;
 
-import com.mesim.sc.constants.CommonConstants;
 import com.mesim.sc.exception.BackendException;
-import com.mesim.sc.repository.rdb.admin.authority.Authority;
-import com.mesim.sc.repository.rdb.admin.authority.AuthorityMenuMapper;
 import com.mesim.sc.repository.rdb.admin.authority.AuthorityMenuMapperRepository;
 import com.mesim.sc.repository.rdb.admin.authority.AuthorityRepository;
-import com.mesim.sc.repository.rdb.admin.group.User;
-import com.mesim.sc.repository.rdb.admin.group.UserRepository;
+import com.mesim.sc.repository.rdb.admin.user.User;
+import com.mesim.sc.repository.rdb.admin.user.UserRepository;
 
 import com.mesim.sc.security.JwtTokenProvider;
-import com.mesim.sc.service.admin.group.UserDto;
+import com.mesim.sc.service.admin.user.UserDto;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j

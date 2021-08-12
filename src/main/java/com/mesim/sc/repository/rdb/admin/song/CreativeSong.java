@@ -3,7 +3,6 @@ package com.mesim.sc.repository.rdb.admin.song;
 import com.mesim.sc.repository.rdb.CrudEntity;
 
 import com.mesim.sc.repository.rdb.admin.consortium.Consortium;
-import com.mesim.sc.repository.rdb.admin.group.User;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

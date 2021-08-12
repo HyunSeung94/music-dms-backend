@@ -2,21 +2,26 @@ package com.mesim.sc.service;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mesim.sc.constants.CommonConstants;
 import com.mesim.sc.exception.BackendException;
 import com.mesim.sc.exception.ExceptionHandler;
 import com.mesim.sc.repository.rdb.CrudRepository;
 import com.mesim.sc.repository.PageWrapper;
-import com.mesim.sc.util.CsvGeneratorUtil;
 import com.mesim.sc.util.DataTypeUtil;
 import com.mesim.sc.util.DateUtil;
 import com.mesim.sc.util.FileUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
@@ -24,6 +29,7 @@ import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 import javax.persistence.criteria.*;
 import javax.transaction.Transactional;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -44,41 +50,49 @@ public abstract class CrudService {
     @Value("${file.data.base.path}")
     private String fileBasePath;
 
-    @Value("${file.data.temp.path}")
-    private String csvPath;
-
-    @Value("${csv.temp.file}")
-    private String csvFileName;
-
+    protected static final String SELECT_FIELD_SPLITTER = ";";
     protected static final String JOIN_FIELD_DELIMITER = ".";
     protected static final String SORT_FIELD_SPLITTER = ";";
     protected static final String SORT_DESC = "desc";
     protected static final String AND = "AND";
     protected static final String OR = "OR";
-
-    private final List<Object[]> refEntityList = new ArrayList<>();
-
-    // 정렬 기본 필드
-    protected String defaultSortField = "regDate";
-
-    // 정렬 조인 필드
-    protected String[] joinedSortField;
-
-    // 검색 필드
-    protected Set<String> searchFieldSet;
-    protected String[] searchFields = new String[]{};
-
-    // 날짜 검색 필드
-    protected String dateField = "regDate";
-
-    // 조회 컬럼 제외 목록
-    protected String[] excludeColumn = new String[]{};
+    private static final String FILE_NAME_PK_SPLITTER = "_";
 
     protected ObjectMapper mapper = new ObjectMapper();
 
     protected CrudRepository repository;
 
-    private Class<?> pkType;
+    // 페이지, 전체, 선택 목록 조회 시, 기본 검색 조건에 해당하는 필드
+    protected String selectField = "id";
+
+    // 페이지, 전체 목록 조회 시, 정렬 기본 및 조인 필드
+    protected String defaultSortField = "regDate";
+    protected String[] joinedSortField;
+
+    // 페이지, 전체 목록 조회 시, 검색 필드
+    protected Set<String> searchFieldSet;
+    protected String[] searchFields = new String[]{};
+    protected String searchDateField = "regDate";
+
+    // 선택 목록 조회 시, 정렬 필드
+    protected String selectSortField = "name";
+    protected Sort.Direction selectSortDirection = Sort.Direction.ASC;
+
+    // DTO 변수 목록 중 제외할 조회 컬럼 목록
+    protected String[] excludeColumn = new String[]{};
+
+    // 이미지 소스 필드
+    protected String imageSrcField;
+
+    // 파일 저장 경로
+    protected String fileSavePath;
+
+    // Root ID
+    protected Map<String, Object> root = new HashMap<>();
+
+    private List<Object[]> refEntityList = new ArrayList<>();
+    private List<String> pkList = new ArrayList<>();
+    private String pkType;
 
     @PostConstruct
     public void init() {
@@ -90,13 +104,30 @@ public abstract class CrudService {
 
         Type cls = DataTypeUtil.getGenericType(this.repository.getClass())[0];
         Type[] jpaCls = DataTypeUtil.getGenericType(DataTypeUtil.getClass(cls));
-        this.pkType = DataTypeUtil.getClass(((ParameterizedType) jpaCls[0]).getActualTypeArguments()[1]);
+        Class<?> pkCls = DataTypeUtil.getClass(((ParameterizedType) jpaCls[0]).getActualTypeArguments()[1]);
+        this.pkType = pkCls.getName();
+
+        if (pkCls.getName().toUpperCase().contains("PK")) {
+            this.pkList = Arrays
+                    .stream(pkCls.getDeclaredFields())
+                    .map(field -> field.getName())
+                    .collect(Collectors.toList());
+        } else {
+            this.pkList.add("id");
+        }
     }
 
     /**
      * 각 서비스의 엔티티에 대한 레포지토리 주입
      */
     abstract public void setRepository(CrudRepository repository);
+
+    /**
+     * 해당 Repository 에 맞는 DTO 클래스를 반환
+     *
+     * @return Dto Class
+     */
+    abstract protected Class getClazz() throws BackendException;
 
     /**
      * 검색을 위한 조인 레퍼런스 엔티티 추가
@@ -123,6 +154,7 @@ public abstract class CrudService {
     /**
      * 검색 키워드 및 조건에 일치하는 페이지 목록 조회
      *
+     * @param select 검색 기본값, selectSplitter 없는 경우 selectField Equal 조건
      * @param index 조회 시작 위치
      * @param size 조회 목록 개수
      * @param sortProperties 정렬할 필드명 리스트
@@ -132,29 +164,20 @@ public abstract class CrudService {
      * @param toDate 검색 마지막 날짜
      * @return 페이지 목록
      */
-    public PageWrapper getListPage(int index, int size, String[] sortProperties, String[] keywords, String searchOp, String fromDate, String toDate) throws BackendException {
-        Specification<Object> spec = null;
+    public PageWrapper getListPage(String[] select, int index, int size, String[] sortProperties, String[] keywords, String searchOp, String fromDate, String toDate) throws BackendException {
         PageRequest pageRequest = this.getPageRequest(index, size, sortProperties);
-
-        if (fromDate != null && toDate != null) {
-            spec = this.getDateSpec(fromDate, toDate);
-        }
-
-        if (keywords != null && keywords.length > 0) {
-            spec = spec == null ?
-                    Specification.where(getSearchSpec(keywords, this.searchFieldSet, searchOp)) :
-                    Specification.where(getSearchSpec(keywords, this.searchFieldSet, searchOp)).and(spec);
-        }
+        Specification<Object> spec = this.getSpec(select, keywords, searchOp, fromDate, toDate);
 
         Page<Object> page = spec == null ? this.repository.findAll(pageRequest) : this.repository.findAll(spec, pageRequest);
         PageWrapper result = new PageWrapper(page);
+        final AtomicInteger seq = new AtomicInteger(1);
 
-        final AtomicInteger i = new AtomicInteger(1);
+        List<Object> list = page
+                .get()
+                .map(ExceptionHandler.wrap(entity -> this.toDto(entity, seq.getAndIncrement() + (result.getNumber() * size))))
+                .collect(Collectors.toList());
 
-        result.setList(page.get()
-                .map(ExceptionHandler.wrap(entity -> this.toDto(entity, i.getAndIncrement() + (result.getNumber() * size))))
-                .collect(Collectors.toList())
-        );
+        result.setList(list);
 
         return result;
     }
@@ -162,6 +185,7 @@ public abstract class CrudService {
     /**
      * 검색 키워드에 일치하는 전체 목록 조회
      *
+     * @param select 검색 기본값, selectSplitter 없는 경우 selectField Equal 조건
      * @param sortProperties 정렬할 필드명 리스트
      * @param keywords 검색 키워드
      * @param searchOp 키워드 간 검색 조건, OR 또는 AND
@@ -169,25 +193,15 @@ public abstract class CrudService {
      * @param toDate 검색 마지막 날짜
      * @return 전체 목록
      */
-    public List<Object> getList(String[] sortProperties, String[] keywords, String searchOp, String fromDate, String toDate) throws BackendException {
-        Specification<Object> spec = null;
+    public List<Object> getList(String[] select, String[] sortProperties, String[] keywords, String searchOp, String fromDate, String toDate) throws BackendException {
         Sort sort = this.getSort(sortProperties);
-
-        if (fromDate != null & toDate != null) {
-            spec = this.getDateSpec(fromDate, toDate);
-        }
-
-        if (keywords != null && keywords.length > 0) {
-            spec = spec == null ?
-                    Specification.where(getSearchSpec(keywords, this.searchFieldSet, searchOp)) :
-                    Specification.where(getSearchSpec(keywords, this.searchFieldSet, searchOp)).and(spec);
-        }
+        Specification<Object> spec = this.getSpec(select, keywords, searchOp, fromDate, toDate);
 
         List<Object> list = spec == null ? this.repository.findAll(sort) : this.repository.findAll(spec, sort);
-
         final AtomicInteger i = new AtomicInteger(1);
 
-        return list.stream()
+        return list
+                .stream()
                 .map(ExceptionHandler.wrap(entity -> this.toDto(entity, i.getAndIncrement())))
                 .collect(Collectors.toList());
     }
@@ -198,16 +212,61 @@ public abstract class CrudService {
      * @return 전체 데이터 목록
      */
     public List<Object> getList() {
-        return this.repository.findAll();
+        Specification<Object> spec = null;
+
+        if (this.root != null && MapUtils.isNotEmpty(this.root)) {
+            spec = this.getNotEqSpec(this.root);
+        }
+
+        List<Object> list = spec == null ? this.repository.findAll() : this.repository.findAll(spec);
+        final AtomicInteger i = new AtomicInteger(1);
+
+        return list
+                .stream()
+                .map(ExceptionHandler.wrap(entity -> this.toDto(entity, i.getAndIncrement())))
+                .collect(Collectors.toList());
     }
 
     /**
-     * 전체 목록 개수 반환
+     * 선택 목록 조회
      *
-     * @return 전체 목록 개수
+     * @param select 검색 기본값, selectSplitter 없는 경우 selectField Equal 조건
+     * @return 선택 목록
      */
-    public long getCount() {
-        return this.repository.count();
+    public List<Object> getListSelect(String[] select) {
+        Specification<Object> spec = null;
+        Sort sort = Sort.by(this.selectSortDirection, this.selectSortField);
+
+        if (select != null && select.length > 0) {
+            spec = this.getSelectSpec(select);
+        }
+
+        if (this.root != null && MapUtils.isNotEmpty(this.root)) {
+            spec = spec == null ? this.getNotEqSpec(this.root) : Specification.where(this.getNotEqSpec(this.root)).and(spec);
+        }
+
+        List<Object> list = spec == null ? this.repository.findAll(sort) : this.repository.findAll(spec, sort);
+        final AtomicInteger i = new AtomicInteger(1);
+
+        return list
+                .stream()
+                .map(ExceptionHandler.wrap(entity -> this.toDto(entity, i.getAndIncrement())))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * 선택 목록 다중 조회
+     *
+     * @param select 검색 기본값, selectSplitter 없는 경우 selectField Equal 조건
+     * @return 선택 목록
+     */
+    public List<List<Object>> getListMultiSelect(String[][] select) {
+        List<List<Object>> result = new ArrayList<>();
+
+        for (String[] s : select) {
+            result.add(this.getListSelect(s));
+        }
+        return result;
     }
 
     /**
@@ -215,105 +274,238 @@ public abstract class CrudService {
      *
      * @return 조회 컬럼 목록
      */
-    public Object getListColumn() throws BackendException {
-        ArrayList<String> fields = (ArrayList<String>) this.toColumn();
+    public List<String> getListColumn() throws BackendException {
+        return this.toColumn()
+                .stream()
+                .filter(field -> !Arrays.asList(this.excludeColumn).contains(field))
+                .collect(Collectors.toList());
+    }
 
-        for (String col : this.excludeColumn) {
-            fields.remove(col);
+    /**
+     * 데이터 상세조회 (PK)
+     *
+     * @param pk 기본키
+     * @return 데이터 DTO
+     */
+    public Object get(Object pk) {
+        if (this.pkList.size() > 0) {
+            Map<String, Object> pkMap = (Map<String, Object>) pk;
+            Specification<Object> spec = this.getEqSpec(pkMap);
+            Optional<Object> optEntity = this.repository.findOne(spec);
+            return optEntity.map(ExceptionHandler.wrap(entity -> this.toDto(entity, 0))).orElse(null);
         }
-
-        return fields;
+        return null;
     }
 
     /**
      * 데이터 상세조회
      *
      * @param id ID
-     * @return 데이터 Dto
+     * @return 데이터 DTO
      */
     public Object get(String id) {
-        if (this.pkType != null) {
-            return this.pkType.getName().equals("java.lang.Integer") ? this.getByIntegerId(id) : this.getByStringId(id);
+        if (this.pkList.size() == 1) {
+            return this.pkType.equals("java.lang.Integer") ? this.getByIntegerId(id) : this.getByStringId(id);
+        } else {
+            return this.getByStringId(id);
         }
-        return this.getByStringId(id);
     }
 
     /**
      * 데이터 상세조회 (Integer ID)
      *
      * @param id ID
-     * @return 데이터 Dto
+     * @return 데이터 DTO
      */
     public Object getByIntegerId(String id) {
         try {
             int _id = Integer.parseInt(id);
             Optional<Object> optEntity = this.repository.findById(_id);
-            return optEntity.map(o -> {
-                try {
-                    return this.toDto(o, 0);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-            }).orElse(null);
+            return optEntity.map(ExceptionHandler.wrap(entity -> this.toDto(entity, 0))).orElse(null);
         } catch (NumberFormatException e) {
-            // 파라미터 값(ID)이 Integer 가 아닌경우 String 으로 처리
+            // 파라미터 값(ID)이 Integer 가 아닌 경우 String 으로 처리
             return this.getByStringId(id);
         }
     }
 
     /**
      * 데이터 상세조회 (String ID)
-     * 복합키(2개 이상의 기본키)인 경우는 별도 작성
      *
      * @param id ID
-     * @return 데이터 Dto
+     * @return 데이터 DTO
      */
     private Object getByStringId(String id) {
         Optional<Object> optEntity = this.repository.findById(id);
-        return optEntity.map(o -> {
-            try {
-                return this.toDto(o, 0);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }).orElse(null);
+        return optEntity.map(ExceptionHandler.wrap(entity -> this.toDto(entity, 0))).orElse(null);
     }
 
     /**
-     * 저장 (생성 또는 수정)
+     * 저장 (등록 및 수정)
      *
-     * @param o 데이터
-     * @return 저장된 데이터
+     * @param dto 데이터 DTO
+     * @return 등록 및 수정된 데이터 DTO
      */
-    public Object save(Object o) throws BackendException {
-        Object entity = this.toEntity(o);
-        Object result = this.repository.saveAndFlush(entity);
-        this.entityManager.refresh(result);
-        return this.toDto(result, 0);
+    public Object save(Object dto) throws BackendException {
+        Object entity = this.toEntity(dto);
+        Object savedEntity = this.repository.saveAndFlush(entity);
+        this.entityManager.refresh(savedEntity);
+        return this.toDto(savedEntity, 0);
     }
 
     /**
-     * 삭제 (PK)
+     * 등록
      *
-     * @param id 삭제할 데이터 PK
+     * @param dto 데이터 DTO
+     * @return 등록된 데이터 DTO
+     */
+    public Object add(Object dto) throws BackendException {
+        Object exist = this.get(dto);
+        if (exist == null) {
+            return this.save(dto);
+        } else {
+            throw new BackendException(CommonConstants.EX_PK_VIOLATION);
+        }
+    }
+
+    /**
+     * 등록 (파일 포함)
+     *
+     * @param dto 데이터 DTO
+     * @param file 파일
+     * @return 등록된 데이터 DTO
+     */
+    @Transactional
+    public Object add(Object dto, MultipartFile file) throws BackendException {
+        try {
+            Object savedDto = this.add(dto);
+
+            if (file != null) {
+                String filePath = this.getFilePath(dto);
+                String fileName = this.getFileNameFromDto(savedDto);
+
+                FileUtil.upload(filePath, fileName, file);
+            }
+            return savedDto;
+        } catch (IOException e) {
+            throw new BackendException("등록 중 오류발생", e);
+        }
+    }
+
+    /**
+     * 등록 (다중 파일 포함)
+     *
+     * @param dto 데이터 DTO
+     * @param files 파일 목록
+     * @return NULL : Override 를 통해 사용
+     */
+    public Object add(Object dto, MultipartFile[] files) throws BackendException {
+        return null;
+    }
+
+    /**
+     * 수정
+     *
+     * @param dto 데이터 DTO
+     * @return 수정된 데이터 DTO
+     */
+    public Object modify(Object dto) throws BackendException {
+        return this.save(dto);
+    }
+
+    /**
+     * 수정 (파일 포함)
+     *
+     * @param dto 데이터 DTO
+     * @param file 파일
+     * @return 수정된 데이터 DTO
+     */
+    @Transactional
+    public Object modify(Object dto, MultipartFile file) throws BackendException {
+        try {
+            Map<String, Object> dtoMap = this.mapper.convertValue(this.get(dto), Map.class);
+
+            Object savedDto = this.modify(dto);
+
+            if (file != null) {
+                String filePath = this.getFilePath(dto);
+                String fileName = this.getFileNameFromDto(savedDto);
+
+                if (this.imageSrcField != null && dtoMap.get(this.imageSrcField) != null) {
+                    String originExt = FileUtil.getExt(dtoMap.get(this.imageSrcField).toString());
+                    File deleteFile = new File(FileUtil.makePath(filePath, fileName + "." + originExt));
+                    if (deleteFile.exists()) {
+                        deleteFile.delete();
+                    }
+                }
+
+                FileUtil.upload(filePath, fileName, file);
+            }
+            return savedDto;
+        } catch (IOException e) {
+            throw new BackendException("수정 중 오류발생", e);
+        }
+    }
+
+    /**
+     * 수정 (다중 파일 포함)
+     *
+     * @param dto 데이터 DTO
+     * @param files 파일 목록
+     * @param delete 삭제 파일 목록
+     * @return NULL : Override 를 통해 사용
+     */
+    public Object modify(Object dto, MultipartFile[] files, Object delete) throws BackendException {
+        return null;
+    }
+
+    /**
+     * 삭제 (Entity)
+     *
+     * @param dto 삭제할 데이터 DTO (Map: DTO, List: DTO List)
      * @return 성공/실패 여부
      */
-    public boolean delete(String id) throws BackendException {
-        if (this.pkType != null) {
-            return this.pkType.getName().equals("java.lang.Integer") ? this.deleteByIntegerId(id) : this.deleteByStringId(id);
+    public boolean delete(Object dto) throws BackendException {
+        Map<String, Object> dtoMap = (Map<String, Object>) dto;
+        Object data = dtoMap.get("data");
+
+        if (data instanceof Map) {
+            // DTO
+            Object entity = this.toEntity(data);
+            this.deleteFile(data);
+            this.repository.delete(entity);
+        } else {
+            // DTO List
+            List<Object> entities = ((List<Object>) data)
+                    .stream()
+                    .map(ExceptionHandler.wrap(object -> this.toEntity(object)))
+                    .collect(Collectors.toList());
+            this.deleteFiles((List<Object>) data);
+            this.repository.deleteAll(entities);
         }
-        return this.deleteByStringId(id);
+
+        return true;
+    }
+
+    /**
+     * 삭제
+     *
+     * @param id 삭제할 데이터 ID
+     * @return 성공/실패 여부
+     */
+    public boolean delete(String id) {
+        return this.pkType.equals("java.lang.Integer") ? this.deleteByIntegerId(id) : this.deleteByStringId(id);
     }
 
     /**
      * 삭제 (Integer ID)
      *
-     * @param id 삭제할 데이터 PK
+     * @param id 삭제할 데이터 ID
      * @return 성공/실패 여부
      */
     public boolean deleteByIntegerId(String id) {
         try {
             int _id = Integer.parseInt(id);
+            this.deleteFileById(_id);
             this.repository.deleteById(_id);
             return true;
         } catch (NumberFormatException e) {
@@ -325,28 +517,341 @@ public abstract class CrudService {
     /**
      * 삭제 (String ID)
      *
-     * @param id 삭제할 데이터 PK
+     * @param id 삭제할 데이터 ID
      * @return 성공/실패 여부
      */
     public boolean deleteByStringId(String id) {
+        this.deleteFileById(id);
         this.repository.deleteById(id);
         return true;
     }
 
     /**
-     * 삭제 (Entity)
-     *
-     * @param o 삭제할 데이터 Entity
-     * @return 성공/실패 여부
+     * 여러 데이터 파일 삭제
+     * @param dtoList 삭제할 데이터 DTO 목록
      */
-    public boolean delete(Object o) throws BackendException {
-        Map<String, Object> map = (Map<String, Object>) o;
-        List<Object> deleteObjects =((List<Object>) map.get("ids"))
-                .stream()
-                .map(ExceptionHandler.wrap(object -> this.toEntity(object)))
-                .collect(Collectors.toList());
-        this.repository.deleteAll(deleteObjects);
-        return true;
+    public void deleteFiles(List<Object> dtoList) {
+        dtoList.forEach(this::deleteFile);
+    }
+
+    /**
+     * 데이터 파일 삭제
+     * @param dto 삭제할 데이터 DTO
+     */
+    public void deleteFile(Object dto) {
+        if (this.imageSrcField == null) {
+            return;
+        }
+
+        if (this.imageSrcField.contains(".")) {
+            Map<String, Object> dtoMap = this.mapper.convertValue(this.get(dto), Map.class);
+
+            String[] fieldSplit = this.imageSrcField.split("\\.");
+            String refAttr = fieldSplit[0];
+            String refField = fieldSplit[1];
+
+            Object refDto = dtoMap.get(refAttr);
+
+            if (refDto instanceof List) {
+                ((List<Object>) refDto).forEach(obj -> {
+                    this.deleteRefFile(dto, obj, refField);
+                });
+            } else {
+                this.deleteRefFile(dto, refDto, refField);
+            }
+        } else {
+            this.deleteTargetFile(dto);
+        }
+    }
+
+    /**
+     * 데이터 파일 삭제 (Integer ID)
+     * @param id 삭제할 데이터 ID
+     */
+    public void deleteFileById(int id) {
+        Object dto = this.getByIntegerId(Integer.toString(id));
+        this.deleteFile(dto);
+    }
+
+    /**
+     * 데이터 파일 삭제 (String ID)
+     * @param id 삭제할 데이터 ID
+     */
+    public void deleteFileById(String id) {
+        Object dto = this.getByStringId(id);
+        this.deleteFile(dto);
+    }
+
+    /**
+     * 데이터 파일 삭제
+     * @param dto 데이터 DTO
+     */
+    public void deleteTargetFile(Object dto) {
+        Map<String, Object> dtoMap = this.mapper.convertValue(dto, Map.class);
+
+        String filePath = this.getFilePath(dto);
+        String fileName = this.getFileNameFromDto(dto);
+
+        String originExt = FileUtil.getExt(dtoMap.get(this.imageSrcField).toString());
+        File deleteFile = new File(FileUtil.makePath(filePath, fileName + "." + originExt));
+        if (deleteFile.exists()) {
+            deleteFile.delete();
+        }
+    }
+
+    /**
+     * 참조 데이터 파일 삭제
+     * @param dto 데이터 DTO
+     * @param refDto 참조 데이터 DTO
+     * @param refField 참조 데이터 파일 경로 컬럼
+     */
+    public void deleteRefFile(Object dto, Object refDto, String refField) {
+        Map<String, Object> refDtoMap = this.mapper.convertValue(refDto, Map.class);
+
+        String filePath = this.getFilePath(dto);
+        String fileName = refDtoMap.get("id").toString();
+
+        String originExt = FileUtil.getExt(refDtoMap.get(refField).toString());
+        File deleteFile = new File(FileUtil.makePath(filePath, fileName + "." + originExt));
+        if (deleteFile.exists()) {
+            deleteFile.delete();
+        }
+    }
+
+    /**
+     * 미리보기 (PK)
+     *
+     * @param pk 기본키, refId (참조 ID)
+     * @return 미리보기 이미지 및 모델 등의 파일
+     */
+    public byte[] preview(Object pk) throws BackendException {
+        if (this.imageSrcField == null) {
+            return null;
+        }
+
+        Map<String, Object> pkMap = (Map<String, Object>) pk;
+        Object refId = pkMap.get("refId");
+        return this.getImage(this.get(pk), refId);
+    }
+
+    /**
+     * 미리보기
+     *
+     * @param id ID
+     * @param refId 참조 ID
+     * @return 미리보기 이미지 및 모델 등의 파일
+     */
+    public byte[] preview(Object id, Object refId) throws BackendException {
+        if (this.imageSrcField == null) {
+            return null;
+        }
+
+        if (this.pkType.equals("java.lang.Integer")) {
+            return this.getImage(this.getByIntegerId(id.toString()), refId);
+        } else {
+            return this.getImage(this.getByStringId(id.toString()), refId);
+        }
+    }
+
+    /**
+     * 파일 저장경로 가져오기
+     * @param dto 데이터 DTO
+     * @return 파일 저장경로
+     */
+    public String getFilePath(Object dto) {
+        Map<String, Object> dtoMap = this.mapper.convertValue(dto, Map.class);
+
+        String path = this.fileSavePath == null ? this.fileBasePath : FileUtil.makePath(this.fileBasePath, this.fileSavePath);
+
+        if (path.contains("{") && path.contains("}")) {
+            int stIndex = path.indexOf("{") + 1;
+            int endIndex = path.indexOf("}");
+            String replaceTxt = path.substring(stIndex, endIndex);
+            String replaceData = dtoMap.get(replaceTxt).toString();
+
+            if (replaceData != null) {
+                path = path.replace("{" + replaceTxt + "}", replaceData);
+            }
+        }
+        return path;
+    }
+
+    /**
+     * 파일 저장경로 가져오기
+     * @return 파일 저장경로
+     */
+    public String getFilePath() {
+        return this.fileSavePath == null ? this.fileBasePath : FileUtil.makePath(this.fileBasePath, this.fileSavePath);
+    }
+
+    /**
+     * 파일 이름 가져오기
+     * @param dto 데이터 DTO
+     * @return 파일 명
+     */
+    public String getFileNameFromDto(Object dto) {
+        Map<String, Object> dtoMap = this.mapper.convertValue(dto, Map.class);
+        String fileName = null;
+
+        for (int i = 0; i < this.pkList.size(); i++) {
+            String pkVal = dtoMap.get(this.pkList.get(i)).toString();
+            if (i == 0) {
+                fileName = pkVal;
+            } else {
+                fileName = fileName + this.FILE_NAME_PK_SPLITTER + pkVal;
+            }
+        }
+        return fileName;
+    }
+
+    /**
+     * 미리보기
+     *
+     * @param dto 데이터 DTO
+     * @param refId 참조 ID
+     * @return 미리보기 이미지
+     */
+    public byte[] getImage(Object dto, Object refId) throws BackendException {
+        if (dto != null) {
+            Map<String, Object> dtoMap = this.mapper.convertValue(dto, Map.class);
+
+            String imgPath = this.getFilePath(dto);
+            String fileName;
+            String refField = null;
+
+            if (this.imageSrcField.contains(".") && refId != null) {
+                fileName = refId.toString();
+
+                String[] fieldSplit = this.imageSrcField.split("\\.");
+                String refAttr = fieldSplit[0];
+                refField = fieldSplit[1];
+
+                Object refDto = dtoMap.get(refAttr);
+
+                if (refDto instanceof List) {
+                    dto = ((List<Object>) refDto)
+                            .stream()
+                            .filter(obj -> ((Map<String, Object>) obj).get("id").toString().equals(refId.toString()))
+                            .findAny()
+                            .orElse(null);
+                } else {
+                    dto = refDto;
+                }
+
+                if (dto == null) {
+                    return null;
+                }
+            } else {
+                fileName = this.getFileNameFromDto(dto);
+            }
+
+            dtoMap = this.mapper.convertValue(dto, Map.class);
+
+            if (this.imageSrcField == null || dtoMap.get(this.imageSrcField) == null) {
+                return null;
+            }
+
+            String imgSrc = refField == null ? dtoMap.get(this.imageSrcField).toString() : dtoMap.get(refField).toString();
+            String imgName = fileName + "." + FileUtil.getExt(imgSrc);
+            File imgFile = new File(FileUtil.makePath(imgPath, imgName));
+
+            try {
+                if (imgSrc.contains(".svg")) {
+                    imgFile = FileUtil.svgToPng(imgFile);
+                }
+
+                if (imgFile.length() > 0) {
+                    InputStream is = new FileInputStream(imgFile);
+                    byte[] imgBytes = IOUtils.toByteArray(is);
+
+                    is.close();
+
+                    return imgBytes;
+
+                } else {
+                    return null;
+                }
+            } catch (Exception e) {
+                throw new BackendException("이미지 읽는 중 오류발생", e);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * 내보내기
+     *
+     * @param sortProperties 정렬할 필드명 리스트
+     * @param keywords 검색 키워드
+     * @param searchOp 키워드 간 검색 조건, OR 또는 AND
+     * @param fromDate 검색 시작 날짜
+     * @param toDate 검색 마지막 날짜
+     * @return CSV 파일
+     */
+    public byte[] export(String[] sortProperties, String[] keywords, String searchOp, String fromDate, String toDate) throws BackendException {
+        String csvFile = null;
+        BufferedWriter bw = null;
+        CSVPrinter printer = null;
+
+        try {
+            File folder = new File(this.fileBasePath);
+
+            if (!folder.exists()) {
+                folder.mkdirs();
+            }
+
+            String fileName = "temp_" + System.currentTimeMillis() + ".csv";
+            csvFile = FileUtil.makePath(this.fileBasePath, fileName);
+            String[] columns = this.toColumn().toArray(new String[0]);
+
+            bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(csvFile), "MS949"));
+            printer = new CSVPrinter(bw, CSVFormat.DEFAULT.withHeader(columns));
+
+            List<Object> dtoList = this.getList(null, sortProperties, keywords, searchOp, fromDate, toDate);
+            CSVPrinter finalPrinter = printer;
+            dtoList.forEach(dto -> {
+                Map<String, Object> dtoMap = this.mapper.convertValue(dto, Map.class);
+
+                ArrayList<String> values = new ArrayList<>();
+                for (String col : columns) {
+                    if (dtoMap.get(col) != null) {
+                        values.add(String.valueOf(dtoMap.get(col)));
+                    } else {
+                        values.add("");
+                    }
+                }
+
+                try {
+                    finalPrinter.printRecord(values.toArray());
+                    finalPrinter.flush();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+
+            return FileUtil.download(csvFile);
+
+        } catch (IOException e) {
+            throw new BackendException("내보내기 중 오류발생", e);
+        } finally {
+            File file = new File(csvFile);
+
+            if (file.exists()) {
+                new File(csvFile).delete();
+            }
+
+            try {
+                if (bw != null) {
+                    bw.close();
+                }
+                if (printer != null) {
+                    printer.close();
+                }
+            } catch (Exception e) {
+                throw new BackendException("내보내기 자원 해제 중 오류발생", e);
+            }
+        }
     }
 
     /**
@@ -357,7 +862,7 @@ public abstract class CrudService {
      * @param sortProperties 정렬할 필드명 리스트
      * @return PageRequest
      */
-    public PageRequest getPageRequest(int index, int size, String[] sortProperties) {
+    protected PageRequest getPageRequest(int index, int size, String[] sortProperties) {
         return PageRequest.of(index, size, getSort(sortProperties));
     }
 
@@ -384,7 +889,7 @@ public abstract class CrudService {
                         Optional<String> optJoin = Arrays.stream(this.joinedSortField).filter(prop::startsWith).findFirst();
                         if (optJoin.isPresent()) {
                             String joinField = optJoin.get();
-                            prop = String.join(JOIN_FIELD_DELIMITER, joinField, prop.replace(joinField, "").toLowerCase());
+                            prop = String.join(JOIN_FIELD_DELIMITER, joinField, prop.replaceFirst(joinField, "").toLowerCase());
                         }
                     }
                     sortPropertyList.add(order.equals(SORT_DESC) ? Sort.Order.desc(prop) : Sort.Order.asc(prop));
@@ -397,6 +902,67 @@ public abstract class CrudService {
     }
 
     /**
+     * 종합 Specification 생성
+     *
+     * @param select 검색 기본값, selectSplitter 없는 경우 selectField Equal 조건
+     * @param keywords 검색 키워드
+     * @param searchOp 키워드 간 검색 조건, OR 또는 AND
+     * @param fromDate 검색 시작 날짜
+     * @param toDate 검색 마지막 날짜
+     * @return 검색 Specification
+     */
+    protected Specification<Object> getSpec(String[] select, String[] keywords, String searchOp, String fromDate, String toDate) throws BackendException {
+        Specification<Object> spec = null;
+
+        if (select != null && select.length > 0) {
+            spec = this.getSelectSpec(select);
+        }
+
+        if (fromDate != null & toDate != null) {
+            spec = spec == null ? this.getDateSpec(fromDate, toDate) : Specification.where(this.getDateSpec(fromDate, toDate)).and(spec);
+        }
+
+        if (keywords != null && keywords.length > 0) {
+            spec = spec == null ? getSearchSpec(keywords, this.searchFieldSet, searchOp) : Specification.where(getSearchSpec(keywords, this.searchFieldSet, searchOp)).and(spec);
+        }
+
+        if (this.root != null && MapUtils.isNotEmpty(this.root)) {
+            spec = spec == null ? this.getNotEqSpec(this.root) : Specification.where(this.getNotEqSpec(this.root)).and(spec);
+        }
+
+        return spec;
+    }
+
+    /**
+     * 기본 검색에 필요한 Specification 생성
+     *
+     * @param select 검색 기본값, selectSplitter 없는 경우 selectField Equal 조건
+     * @return
+     */
+    protected Specification<Object> getSelectSpec(String[] select) {
+        Specification<Object> spec = null;
+
+        for (String s : select) {
+            String field = this.selectField;
+            String value = s;
+
+            if (s.contains(this.SELECT_FIELD_SPLITTER)) {
+                field = s.split(this.SELECT_FIELD_SPLITTER)[0];
+                value = s.split(this.SELECT_FIELD_SPLITTER)[1];
+            }
+
+            Specification<Object> finalSpec = spec;
+            String finalField = field;
+            String finalValue = value;
+
+            spec = spec == null ?
+                    (Specification<Object>) (root, query, cb) -> cb.equal(root.get(finalField), finalValue) :
+                    Specification.where((root, query, cb) -> cb.equal(root.get(finalField), finalValue)).and(finalSpec);
+        }
+        return spec;
+    }
+
+    /**
      * 날짜 검색에 필요한 Specification 생성
      *
      * @param fromDate 검색 시작 날짜
@@ -404,7 +970,7 @@ public abstract class CrudService {
      * @return 날짜 검색 Specification
      */
     protected Specification<Object> getDateSpec(String fromDate, String toDate) {
-        return (Specification<Object>) (root, query, cb) -> cb.between(root.get(dateField), DateUtil.getInitFromDate(fromDate), DateUtil.getInitToDate(toDate));
+        return (Specification<Object>) (root, query, cb) -> cb.between(root.get(this.searchDateField), DateUtil.getInitFromDate(fromDate), DateUtil.getInitToDate(toDate));
     }
 
     /**
@@ -420,12 +986,12 @@ public abstract class CrudService {
             Set<String> keywordSet = new HashSet<>(Arrays.asList(keywords));
             Collection<String> likeKeywords = new ArrayList<>();
 
-            for (String keyword : keywordSet) {
+            keywordSet.forEach(keyword -> {
                 likeKeywords.add(keyword.contains("%") ? keyword : "%" + keyword + "%");
-            }
-            return this.getSpec(likeKeywords, fields, searchOp);
+            });
+            return this.getJoinSearchSpec(likeKeywords, fields, searchOp);
         } else {
-            throw new BackendException("검색 조건 오류 (searchOP=" + searchOp + ")");
+            throw new BackendException("검색 조건 오류 (" + searchOp + " option is not supported)");
         }
     }
 
@@ -438,7 +1004,7 @@ public abstract class CrudService {
      * @param searchOp 키워드 간 검색 조건, OR 또는 AND
      * @return 키워드 검색 Specification
      */
-    protected Specification<Object> getSpec(Collection<String> keywords, Set<String> fields, String searchOp) {
+    protected Specification<Object> getJoinSearchSpec(Collection<String> keywords, Set<String> fields, String searchOp) {
         return new Specification<Object>() {
             private static final long serialVersionUID = 1L;
 
@@ -457,8 +1023,9 @@ public abstract class CrudService {
                 });
 
                 // 검색 키워드 별 키워드-어트리뷰트(루트 엔티티, 레퍼런스 엔티티) Predicate 생성
-                for (String keyword : keywords) {
-                    root.getModel().getDeclaredSingularAttributes().stream()
+                keywords.forEach(keyword -> {
+                    root.getModel().getDeclaredSingularAttributes()
+                            .stream()
                             .filter(o -> fields.contains(o.getName()))
                             .forEach(o -> {
                                 Predicate predicate = builder.like(root.get(o.getName()), keyword);
@@ -480,7 +1047,7 @@ public abstract class CrudService {
                     }
 
                     predicates.clear();
-                }
+                });
 
                 Predicate[] array = finalPredicates.toArray(new Predicate[finalPredicates.size()]);
 
@@ -489,22 +1056,88 @@ public abstract class CrudService {
         };
     }
 
-
     /**
-     * 해당 Repository 에 맞는 Dto 클래스를 반환
-     *
-     * @return Dto Class
+     * 데이터와 같은 Specification 생성
+     * @param data 데이터
+     * @return 데이터와 같은 Specification
      */
-    abstract protected Class getClazz() throws BackendException;
+    protected Specification<Object> getEqSpec(Map<String, Object> data) {
+        Specification<Object> spec = null;
 
+        for (int i = 0; i < this.pkList.size(); i++) {
+            String pk = this.pkList.get(i);
+            if (i == 0) {
+                spec = ((Specification<Object>) (root, query, cb) -> cb.equal(root.get(pk), data.get(pk)));
+            } else {
+                spec = ((Specification<Object>) (root, query, cb) -> cb.equal(root.get(pk), data.get(pk))).and(spec);
+            }
+        }
+
+        return spec;
+    }
 
     /**
-     * Dto 클래스의 선언된 변수 목록을 가져오는 메소드
+     * 데이터와 같지 않은 조건 Specification 생성
+     * @param data 데이터
+     * @return 데이터와 같지 않은 조건 Specification
+     */
+    protected Specification<Object> getNotEqSpec(Map<String, Object> data) {
+        Specification<Object> spec = null;
+
+        for (int i = 0; i < this.pkList.size(); i++) {
+            String pk = this.pkList.get(i);
+            if (i == 0) {
+                spec = ((Specification<Object>) (root, query, cb) -> cb.notEqual(root.get(pk), data.get(pk)));
+            } else {
+                spec = ((Specification<Object>) (root, query, cb) -> cb.notEqual(root.get(pk), data.get(pk))).and(spec);
+            }
+        }
+
+        return spec;
+    }
+
+    /**
+     * Root 여부 확인
+     *
+     * @param id ID
+     * @return Root 여부
+     */
+    protected boolean isRootById(Object id) {
+        if (this.root == null || MapUtils.isEmpty(this.root)) {
+            return false;
+        }
+        return id == this.root.get(this.pkList.get(0));
+    }
+
+    /**
+     * Root 여부 확인 (PK)
+     * @param o 기본키
+     * @return Root 여부
+     */
+    protected boolean isRoot(Object o) {
+        if (this.root == null || MapUtils.isEmpty(this.root)) {
+            return false;
+        }
+
+        Map<String, Object> data = this.mapper.convertValue(o, Map.class);
+
+        for (int i = 0; i < this.pkList.size(); i++) {
+            String pk = this.pkList.get(i);
+            boolean checked = data.get(pk) == this.root.get(pk);
+            if (!checked) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * DTO 클래스의 선언된 변수 목록을 가져오는 메소드
      * 각 패키지의 abstract class 에서 작성 (ex: AdminService.class 참조)
      *
      * @return 변수 목록
      */
-    protected Object toColumn() throws BackendException {
+    protected List<String> toColumn() throws BackendException {
         try {
             Class clazz = this.getClazz();
             ArrayList<Field> fields = new ArrayList<>(Arrays.asList(clazz.getDeclaredFields()));
@@ -514,7 +1147,8 @@ public abstract class CrudService {
                 fields.addAll(Arrays.asList(clazz.getDeclaredFields()));
             }
 
-            return fields.stream()
+            return fields
+                    .stream()
                     .map(Field::getName)
                     .collect(Collectors.toList());
         } catch (Exception e) {
@@ -523,19 +1157,19 @@ public abstract class CrudService {
     }
 
     /**
-     * Entity 클래스를 Dto 클래스로 생성하는 메소드
+     * Entity 클래스를 DTO 클래스로 생성하는 메소드
      * 각 패키지의 abstract class 에서 작성 (ex: AdminService.class 참조)
      *
      * @param o Entity
      * @param seq 번호
-     * @return Dto
+     * @return DTO
      */
     protected Object toDto(Object o, int seq) throws BackendException {
         Class clazz = null;
-        Object object = null;
+
         try {
             clazz = getClazz();
-            object = clazz.getDeclaredConstructor(o.getClass()).newInstance(o);
+            Object object = clazz.getDeclaredConstructor(o.getClass()).newInstance(o);
 
             if (object instanceof CrudDto) {
                 CrudDto dto = (CrudDto) object;
@@ -556,8 +1190,7 @@ public abstract class CrudService {
 
             return object;
         } catch(Exception e) {
-            log.error(e.getMessage(), e);
-            throw new BackendException("Dto 변환 중 오류발생, Class : " + clazz  + ", Object : " + object + e.getMessage());
+            throw new BackendException(clazz + " DTO 변환 중 오류발생, " + e.getMessage());
         }
     }
 
@@ -565,31 +1198,22 @@ public abstract class CrudService {
      * Dto 클래스를 Entity 클래스 생성하는 메소드
      * 각 패키지의 abstract class 에서 작성 (ex: AdminService.class 참조)
      *
-     * @param o Dto
+     * @param o DTO
      * @return Entity
      */
     protected Object toEntity(Object o) throws BackendException {
+        Class clazz = null;
+
         try {
-            Class clazz = null;
             if (o instanceof Map) {
                 clazz = getClazz();
                 o = mapper.convertValue(o, clazz);
             }
-            return this.toEntity(o, clazz);
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            throw new BackendException("Entity 변환 중 오류발생, " + e.getMessage());
-        }
-    }
 
-    protected Object toEntity(Object o, Class clazz) throws BackendException {
-        try {
-            Class cls = o.getClass();
             Method method = o.getClass().getMethod("toEntity");
             return method.invoke(o);
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            throw new BackendException("Entity 변환 중 오류발생, " + e.getMessage());
+            throw new BackendException(clazz + " Entity 변환 중 오류발생, " + e.getMessage());
         }
     }
 
@@ -954,25 +1578,4 @@ public abstract class CrudService {
         return list;
     }
 
-    public void generateCSV(List<Object> mapList) throws BackendException {
-        ArrayList<String> columnList = (ArrayList<String>) toColumn();
-
-//        String[] keyList = new String[]{"id", "userId", "userNm", "typeCd", "typeNm", "apiPath", "accessIp", "accessDate", "errorCode", "errorCodeNm", "errorContents", "errorYn"};
-        String[] keyList = columnList.stream().toArray(String[]::new);
-
-        CsvGeneratorUtil cgu = new CsvGeneratorUtil(FileUtil.makePath(fileBasePath, csvPath), csvFileName, keyList);
-
-        mapList.forEach(dto -> {
-            ObjectMapper objectMapper = new ObjectMapper();
-            Map map = objectMapper.convertValue(dto, Map.class);
-
-            try {
-                cgu.generateCSV((Map<String, String>) map);
-            } catch (BackendException e) {
-                throw new RuntimeException(e);
-            }
-        });
-
-        cgu.close();
-    }
 }

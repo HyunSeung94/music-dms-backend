@@ -1,5 +1,6 @@
 package com.mesim.sc.service.admin.authority;
 
+import com.mesim.sc.constants.CommonConstants;
 import com.mesim.sc.repository.rdb.CrudRepository;
 import com.mesim.sc.repository.rdb.admin.authority.AuthorityRepository;
 import com.mesim.sc.service.admin.AdminService;
@@ -14,7 +15,7 @@ import java.util.List;
 
 @Slf4j
 @Service
-@Qualifier("roleService")
+@Qualifier("authorityService")
 public class AuthorityService extends AdminService {
 
     @Autowired
@@ -26,15 +27,9 @@ public class AuthorityService extends AdminService {
     @PostConstruct
     public void init () {
         this.searchFields = new String[]{"name"};
+        this.root.put("id", CommonConstants.AUTHORITY_ROOT_ID);
+
         super.init();
     }
 
-    @Override
-    public List<Object> getList() {
-        return new ArrayList<>(((AuthorityRepository) this.repository).findAllByOrderByRegDate());
-    }
-
-    public Object getListSelect() {
-        return ((AuthorityRepository) this.repository).findAllByOrderByName();
-    }
 }

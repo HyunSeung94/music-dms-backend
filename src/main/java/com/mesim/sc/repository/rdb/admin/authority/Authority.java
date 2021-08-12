@@ -5,24 +5,22 @@ import com.mesim.sc.repository.rdb.CrudEntity;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 
 import javax.persistence.*;
 import java.util.List;
 
 @NoArgsConstructor
 @Getter
-@Entity(name = "TB_ADMIN_IT_ROLE")
-@ToString
+@Entity(name = "TB_ADMIN_IT_AUTHORITY")
 public class Authority extends CrudEntity {
 
     @Id
-    @Column(name = "ROLE_ID")
-    @SequenceGenerator(name = "COL_GEN_ROLE_ID_SEQ", sequenceName = "ROLE_ID_SEQ", allocationSize=1)
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "COL_GEN_ROLE_ID_SEQ")
+    @Column(name = "AUTHORITY_ID")
+    @SequenceGenerator(name = "COL_GEN_AUTHORITY_ID_SEQ", sequenceName = "AUTHORITY_ID_SEQ", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "COL_GEN_AUTHORITY_ID_SEQ")
     private int id;
 
-    @Column(name = "ROLE_NM")
+    @Column(name = "AUTHORITY_NM")
     private String name;
 
 
@@ -33,13 +31,14 @@ public class Authority extends CrudEntity {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "authority")
     private List<AuthorityMenuMapper> authorityMenuMappers;
 
-    @JsonIgnore
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "authority")
-    private List<AuthorityInfraTypeMapper> authorityInfraTypeMappers;
-
     @Builder
-    public Authority(int id, String name, String rmk, String regId, String modId) {
-
+    public Authority(
+            int id,
+            String name,
+            String rmk,
+            String regId,
+            String modId
+    ) {
         super(regId, modId);
 
         this.id = id;

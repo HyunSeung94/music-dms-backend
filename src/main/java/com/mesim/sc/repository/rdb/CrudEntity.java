@@ -1,7 +1,7 @@
 package com.mesim.sc.repository.rdb;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.mesim.sc.repository.rdb.admin.group.User;
+import com.mesim.sc.repository.rdb.admin.user.User;
 import lombok.Getter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.NotFound;

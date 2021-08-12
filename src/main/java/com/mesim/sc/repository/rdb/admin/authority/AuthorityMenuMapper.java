@@ -5,7 +5,6 @@ import com.mesim.sc.repository.rdb.admin.menu.Menu;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 import org.hibernate.annotations.NotFound;
 import org.hibernate.annotations.NotFoundAction;
 
@@ -13,14 +12,13 @@ import javax.persistence.*;
 
 @NoArgsConstructor
 @Getter
-@Entity(name = "TB_ADMIN_IT_ROLEMENUMAPPER")
-@IdClass(AuthorityMenuMapperKey.class)
-@ToString
+@Entity(name = "TB_ADMIN_IT_AUTHORITYMENUMAPPER")
+@IdClass(AuthorityMenuMapperPk.class)
 public class AuthorityMenuMapper extends CrudEntity {
 
     @Id
-    @Column(name = "ROLE_ID")
-    private int roleId;
+    @Column(name = "AUTHORITY_ID")
+    private int authorityId;
 
     @Id
     @Column(name = "MENU_ID")
@@ -41,22 +39,31 @@ public class AuthorityMenuMapper extends CrudEntity {
     @Column(name = "DOWNLOAD_YN")
     private int downloadYn;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER)
     @NotFound(action = NotFoundAction.IGNORE)
-    @JoinColumn(name = "ROLE_ID", insertable = false, updatable = false)
+    @JoinColumn(name = "AUTHORITY_ID", insertable = false, updatable = false)
     private Authority authority;
 
-    @OneToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER)
     @NotFound(action = NotFoundAction.IGNORE)
     @JoinColumn(name = "MENU_ID", insertable = false, updatable = false)
     private Menu menu;
 
     @Builder
-    public AuthorityMenuMapper(int roleId, int menuId,
-                               boolean searchYn, boolean createYn, boolean updateYn, boolean deleteYn, boolean downloadYn,
-                               String regId, String modId) {
+    public AuthorityMenuMapper(
+            int authorityId,
+            int menuId,
+            boolean searchYn,
+            boolean createYn,
+            boolean updateYn,
+            boolean deleteYn,
+            boolean downloadYn,
+            String regId,
+            String modId
+    ) {
+        super(regId, modId);
 
-        this.roleId = roleId;
+        this.authorityId = authorityId;
         this.menuId = menuId;
         this.searchYn = searchYn ? 1 : 0;
         this.createYn = createYn ? 1 : 0;

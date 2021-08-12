@@ -1,6 +1,6 @@
 package com.mesim.sc.security;
 
-import com.mesim.sc.repository.rdb.admin.group.UserRepository;
+import com.mesim.sc.repository.rdb.admin.user.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;

@@ -4,14 +4,16 @@ import com.mesim.sc.repository.rdb.admin.code.Code;
 import com.mesim.sc.service.admin.AdminDto;
 import com.mesim.sc.util.DateUtil;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class CodeDto extends AdminDto {
 
     private String cd;
-    private String name;
     private String typeCd;
     private String typeNm;
+    private String name;
     private String refVal1;
     private String refVal2;
     private String refVal3;
@@ -21,9 +23,9 @@ public class CodeDto extends AdminDto {
 
     public CodeDto(Code entity) {
         this.cd = entity.getCd();
-        this.name = entity.getName();
         this.typeCd = entity.getTypeCd();
         this.typeNm = entity.getType() != null ? entity.getType().getName() : null;
+        this.name = entity.getName();
         this.refVal1 = entity.getRefVal1();
         this.refVal2 = entity.getRefVal2();
         this.refVal3 = entity.getRefVal3();
@@ -39,8 +41,8 @@ public class CodeDto extends AdminDto {
     public Code toEntity() {
         return Code.builder()
                 .cd(this.cd)
-                .name(this.name)
                 .typeCd(this.typeCd)
+                .name(this.name)
                 .refVal1(this.refVal1)
                 .refVal2(this.refVal2)
                 .refVal3(this.refVal3)
@@ -50,4 +52,5 @@ public class CodeDto extends AdminDto {
                 .modId(this.modId == null ? this.regId : this.modId)
                 .build();
     }
+
 }

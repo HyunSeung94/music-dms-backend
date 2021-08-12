@@ -20,19 +20,8 @@ public class AuthorityMenuMapperRestController extends AdminRestController {
     @Autowired
     @Qualifier("authorityMenuMapperService")
     public void setService(CrudService service) {
-        this.name = "권한-화면 매핑정보";
+        this.name = "권한-메뉴 매핑정보";
         this.service = service;
-    }
-
-    @RequestMapping(value = "listPage", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE, params = {"id", "index", "size"})
-    public ApiResponseDto getList(@RequestParam(value = "id") String id,
-                                  @RequestParam(value = "index") int index,
-                                  @RequestParam(value = "size") int size) throws BackendException {
-        try {
-            return new ApiResponseDto(true, ((AuthorityMenuMapperService) service).getListPage(id, index, size));
-        } catch (Exception e) {
-            throw new BackendException(this.name + " 페이지 목록 조회 중 오류발생", e);
-        }
     }
 
     @Override
@@ -53,4 +42,5 @@ public class AuthorityMenuMapperRestController extends AdminRestController {
             throw new BackendException(this.name + " 상세 수정 중 오류발생", e);
         }
     }
+
 }

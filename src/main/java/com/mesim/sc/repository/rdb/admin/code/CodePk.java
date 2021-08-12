@@ -19,23 +19,31 @@ public class CodePk implements Serializable {
 
     public CodePk() {}
 
-    public CodePk(String cd, String typeCd){
+    public CodePk(String cd, String typeCd) {
         this.cd = cd;
         this.typeCd = typeCd;
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || this.getClass() != o.getClass()) {
+            return false;
+        }
+
         CodePk taskId = (CodePk) o;
-        if (cd != taskId.cd) return false;
-        return typeCd == taskId.typeCd;
+        if (!cd.equals(taskId.cd)) {
+            return false;
+        }
+        return typeCd.equals(taskId.typeCd);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(cd, typeCd);
     }
-    
+
 }

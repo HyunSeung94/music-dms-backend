@@ -4,7 +4,6 @@ import com.mesim.sc.repository.rdb.CrudEntity;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
 import org.hibernate.annotations.*;
 
 import javax.persistence.*;
@@ -14,24 +13,18 @@ import javax.persistence.Entity;
 @Getter
 @Entity(name = "TB_ADMIN_CT_COMMONCODE")
 @IdClass(CodePk.class)
-@ToString
 public class Code extends CrudEntity {
 
     @Id
     @Column(name = "CD")
     private String cd;
 
-    @Column(name = "CD_NM")
-    private String name;
-
     @Id
     @Column(name = "TYPE_CD")
     private String typeCd;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @NotFound(action = NotFoundAction.IGNORE)
-    @JoinColumn(name = "TYPE_CD", referencedColumnName = "CD_TYPE", insertable = false, updatable = false)
-    private CodeType type;
+    @Column(name = "CD_NM")
+    private String name;
 
     @Column(name = "REF_VAL1")
     private String refVal1;
@@ -48,15 +41,24 @@ public class Code extends CrudEntity {
     @Column(name = "RMK")
     protected String rmk;
 
-    @Builder
-    public Code(String cd, String typeCd, String name,
-                String refVal1, String refVal2, String refVal3,
-                int useYn,
-                String rmk,
-                String regId,
-                String modId) {
+    @ManyToOne(fetch = FetchType.EAGER)
+    @NotFound(action = NotFoundAction.IGNORE)
+    @JoinColumn(name = "TYPE_CD", referencedColumnName = "CD_TYPE", insertable = false, updatable = false)
+    private CodeType type;
 
-        // 필수
+    @Builder
+    public Code(
+            String cd,
+            String typeCd,
+            String name,
+            String refVal1,
+            String refVal2,
+            String refVal3,
+            int useYn,
+            String rmk,
+            String regId,
+            String modId
+    ) {
         super(regId, modId);
 
         this.cd = cd;

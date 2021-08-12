@@ -43,7 +43,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .and()
                 .csrf().disable()
                 .authorizeRequests()
-                .antMatchers("/socket/**/**", "/wamp/**").permitAll()
+                .antMatchers("/socket/**/**").permitAll()
+                .antMatchers("/wamp/**").permitAll()
                 .antMatchers("/api/**/**").permitAll()
                 .antMatchers("/api/**/**/**").permitAll()
                 .antMatchers("/api/**/**/**/**").permitAll()
@@ -51,7 +52,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/**/**/**").authenticated()
                 .antMatchers("/api/**/**/**/**").authenticated()
                 .antMatchers("/api/auth/login").permitAll()
-                .antMatchers("/api/event/layer/image/**/**").permitAll()
                 .antMatchers("/api/admin/song/getSound/**").permitAll()
                 .antMatchers("/api/admin/song/getSound/**/**").permitAll()
                 .antMatchers("/api/admin/song/getFiletoByte").permitAll()
@@ -70,10 +70,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     public void configure(WebSecurity web) throws Exception {
         web.ignoring()
                 .antMatchers("/api/auth/checkExist")
-                .antMatchers("/api/admin/infralayer/image/**/**")
-                .antMatchers("/api/admin/map/minimap/geojson")
-                .antMatchers("/api/event/layer/image/**/**")
-                .antMatchers("/api/service5/mtm112/**")
                 .antMatchers("/api/admin/song/getFiletoByte");
     }
 

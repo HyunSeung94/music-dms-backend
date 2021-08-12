@@ -1,4 +1,4 @@
-package com.mesim.sc.service.admin.group;
+package com.mesim.sc.service.admin.user;
 
 import lombok.Data;
 

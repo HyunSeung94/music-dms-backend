@@ -1,11 +1,7 @@
 package com.mesim.sc.service.admin.group;
 
-import com.mesim.sc.api.ApiResponseDto;
 import com.mesim.sc.constants.CommonConstants;
 import com.mesim.sc.repository.rdb.CrudRepository;
-import com.mesim.sc.repository.rdb.admin.group.GroupRepository;
-import com.mesim.sc.repository.rdb.admin.group.User;
-import com.mesim.sc.repository.rdb.admin.group.UserRepository;
 import com.mesim.sc.service.admin.AdminService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,9 +16,6 @@ import javax.annotation.PostConstruct;
 public class GroupService extends AdminService {
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
     @Qualifier("groupRepository")
     public void setRepository(CrudRepository repository) {
         this.repository = repository;
@@ -30,30 +23,14 @@ public class GroupService extends AdminService {
 
     @PostConstruct
     public void init () {
-        this.searchFields = new String[]{"name"};
-        this.defaultSortField = "name";
-        this.joinedSortField = new String[]{"pgroup"};
+        this.joinedSortField = new String[]{"pgroup", "type"};
+        this.searchFields = new String[]{"pgroupName", "name"};
+        this.excludeColumn = new String[]{"pid", "pName"};
+        this.root.put("id", CommonConstants.GROUP_ROOT_ID);
 
         this.addRefEntity("pgroup","name");
-
-        this.excludeColumn = new String[]{"pid", "pName"};
 
         super.init();
     }
 
-    public ApiResponseDto checkDelete(String id) {
-        int _id = Integer.valueOf(id);
-
-        User user = userRepository.findByGroupId(_id);
-        if (user == null) {
-            this.repository.deleteById(_id);
-            return new ApiResponseDto(true);
-        } else {
-            return new ApiResponseDto(false, null, CommonConstants.EX_FK_VIOLATION);
-        }
-    }
-
-    public Object getListSelect() {
-        return ((GroupRepository) this.repository).findAllByIdNotOrderByName(CommonConstants.GROUP_ROOT_ID);
-    }
 }

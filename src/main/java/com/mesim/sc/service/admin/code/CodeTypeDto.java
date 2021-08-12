@@ -4,10 +4,10 @@ import com.mesim.sc.repository.rdb.admin.code.CodeType;
 import com.mesim.sc.service.admin.AdminDto;
 import com.mesim.sc.util.DateUtil;
 import lombok.Data;
-import lombok.ToString;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
-@ToString
 public class CodeTypeDto extends AdminDto {
 
     private String id;

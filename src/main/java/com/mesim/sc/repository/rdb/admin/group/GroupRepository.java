@@ -10,6 +10,4 @@ import java.util.List;
 @Qualifier("groupRepository")
 public interface GroupRepository extends AdminRepository<Group, Integer> {
 
-    List<Group> findAllByIdNotOrderByName(int id);
-
 }

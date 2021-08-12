@@ -25,9 +25,13 @@ public class CodeType extends CrudEntity {
     protected String rmk;
 
     @Builder
-    public CodeType(String id, String name,
-                    String rmk, String regId, String modId) {
-
+    public CodeType(
+            String id,
+            String name,
+            String rmk,
+            String regId,
+            String modId
+    ) {
         super(regId, modId);
 
         this.id = id;

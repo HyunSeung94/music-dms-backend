@@ -3,13 +3,16 @@ package com.mesim.sc.service.admin.authority;
 import com.mesim.sc.repository.rdb.admin.authority.Authority;
 import com.mesim.sc.repository.rdb.admin.authority.AuthorityMenuMapper;
 import com.mesim.sc.service.CrudDto;
+import com.mesim.sc.service.admin.AdminDto;
 import com.mesim.sc.util.DateUtil;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
-public class AuthorityMenuMapperDto extends CrudDto {
+public class AuthorityMenuMapperDto extends AdminDto {
 
-    private int roleId;
+    private int authorityId;
     private int menuId;
     private String menuNm;
     private int pmenuId;
@@ -20,10 +23,11 @@ public class AuthorityMenuMapperDto extends CrudDto {
     private boolean deleteYn;
     private boolean downloadYn;
     private Authority authority;
+
     public AuthorityMenuMapperDto() {}
 
     public AuthorityMenuMapperDto(AuthorityMenuMapper entity) {
-        this.roleId = entity.getRoleId();
+        this.authorityId = entity.getAuthorityId();
         this.menuId = entity.getMenuId();
 
         if (entity.getMenu() != null) {
@@ -50,7 +54,7 @@ public class AuthorityMenuMapperDto extends CrudDto {
     @Override
     public AuthorityMenuMapper toEntity() {
         return AuthorityMenuMapper.builder()
-                .roleId(this.roleId)
+                .authorityId(this.authorityId)
                 .menuId(this.menuId)
                 .searchYn(this.searchYn)
                 .createYn(this.createYn)

@@ -5,20 +5,7 @@ import lombok.Getter;
 
 import javax.persistence.Embeddable;
 import java.io.Serializable;
-
-/**
- * @author sunhye
- * @version 1.0
- * @see <pre>
- * == 개정이력 (Modification Information) ==
- *
- * 수정일    수정자    수정내용
- * -------  -------  ----------------
- * 2020-04-01  sunhye  최초생성
- *
- * </pre>
- * @since 2020-04-01
- */
+import java.util.Objects;
 
 @Embeddable
 @Getter
@@ -31,5 +18,32 @@ public class MenuTranslatePk implements Serializable {
     private String translateCd;
 
     public MenuTranslatePk() {}
+
+    public MenuTranslatePk(int id, String translateCd) {
+        this.id = id;
+        this.translateCd = translateCd;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || this.getClass() != o.getClass()) {
+            return false;
+        }
+
+        MenuTranslatePk taskId = (MenuTranslatePk) o;
+        if (id != taskId.id) {
+            return false;
+        }
+        return translateCd.equals(taskId.translateCd);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, translateCd);
+    }
 
 }

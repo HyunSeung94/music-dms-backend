@@ -9,9 +9,8 @@ public class UserPrincipal {
     private String password;
     private String[] roles;
 
-    public UserPrincipal(){
+    public UserPrincipal() {}
 
-    }
     public UserPrincipal(String username, String password){
         this.username = username;
         this.password = password;
@@ -21,4 +20,5 @@ public class UserPrincipal {
         this.password = password;
         this.roles = roles;
     }
+
 }

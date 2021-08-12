@@ -1,7 +1,6 @@
 package com.mesim.sc.repository.rdb.admin.Inspection;
 
 import com.mesim.sc.repository.rdb.CrudEntity;
-import com.mesim.sc.repository.rdb.admin.group.User;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -12,17 +11,26 @@ import javax.persistence.*;
 
 @NoArgsConstructor
 @Getter
-@IdClass(InspectionPk.class)
 @Entity(name = "TB_ADMIN_IT_INSPECTION")
 public class Inspection extends CrudEntity {
 
     @Id
     @Column(name = "ID")
+    @SequenceGenerator(name = "COL_GEN_INSPECTION_ID_SEQ", sequenceName = "INSPECTION_ID_SEQ", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "COL_GEN_INSPECTION_ID_SEQ")
     private String id;
 
-    @Id
     @Column(name = "INSPECTION_ID")
     private String inspectionId;
+
+    @Column(name = "SONG_CD")
+    private String songCd;
+
+    @Column(name = "CONTENTS_CD")
+    private String contentsCd;
+
+    @Column(name = "ARRANGE_CD")
+    private Integer arrangeId;
 
     @Column(name = "RESULT_INS")
     private String resultIns;
@@ -33,11 +41,14 @@ public class Inspection extends CrudEntity {
     private InspectionInfo inspectionInfo;
 
     @Builder
-    public Inspection(String id,InspectionInfo inspectionInfo, String inspectionId, String resultIns, String regId, String modId) {
+    public Inspection(String id, InspectionInfo inspectionInfo, String inspectionId, String songCd, String contentsCd, Integer arrangeId, String resultIns, String regId, String modId) {
         super(regId, modId);
         this.id = id;
         this.inspectionInfo = inspectionInfo;
         this.inspectionId = inspectionId;
+        this.songCd = songCd;
+        this.contentsCd = contentsCd;
+        this.arrangeId = arrangeId;
         this.resultIns = resultIns;
     }
 

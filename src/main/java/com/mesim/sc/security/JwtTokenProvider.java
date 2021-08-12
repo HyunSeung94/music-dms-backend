@@ -2,8 +2,9 @@ package com.mesim.sc.security;
 
 import com.mesim.sc.constants.CodeConstants;
 import com.mesim.sc.constants.SecurityConstants;
-import com.mesim.sc.service.admin.group.UserDto;
-import com.mesim.sc.service.admin.group.UserService;
+import com.mesim.sc.service.admin.user.UserDto;
+import com.mesim.sc.service.admin.user.UserService;
+import com.mesim.sc.service.admin.system.UserConnectService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
@@ -31,8 +32,7 @@ public class JwtTokenProvider {
     private static String DEV_TOKEN_USERNAME;
     private static String DEV_TOKEN_ROLE;
 
-//    private static UserConnectService userConnectService;
-    private static UserService userService;
+    private static UserConnectService userConnectService;
 
     @Value("${security.use-dev-token}")
     private void setValue1(boolean value) {
@@ -50,13 +50,11 @@ public class JwtTokenProvider {
     }
 
     @Autowired
-    private void setService( UserService service2) {
-        userService = service2;
+    private void setService(UserConnectService service) {
+        userConnectService = service;
     }
 
     private static ConcurrentMap<String, String> tokenMap = new ConcurrentHashMap<>();
-
-    public static List<UserDto> userConnectList;
 
     public static String createToken(User user) {
         List<String> roles = user.getAuthorities()
@@ -167,9 +165,13 @@ public class JwtTokenProvider {
         tokenMap.remove(userId);
     }
 
+    public static Set<String> getTokenIds() {
+        return JwtTokenProvider.tokenMap.keySet();
+    }
+
     private static void expireToken(String userId) {
         tokenMap.remove(userId);
-//        userConnectService.save(userId, CodeConstants.CONN_LOGOUT_TOKEN, null);
+        userConnectService.save(userId, CodeConstants.CONN_LOGOUT_TOKEN, null);
     }
 
     private static void expireTokenByVal(String token) {
@@ -195,11 +197,4 @@ public class JwtTokenProvider {
         }
     }
 
-    public static List<UserDto> userConnectSelect() {
-        userConnectList = new ArrayList<>();
-        for (String userId : tokenMap.keySet()) {
-            userConnectList.add(userService.getUserByUserId(userId));
-        }
-        return userConnectList;
-    }
 }

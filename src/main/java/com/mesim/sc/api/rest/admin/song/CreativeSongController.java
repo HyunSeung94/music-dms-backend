@@ -50,39 +50,23 @@ public class CreativeSongController extends AdminRestController {
     }
 
     /**
-     * 정보 생성
-     *
-     * @param o 생성할 데이터 객체
-     * @return 생성된 정보
-     */
-    @RequestMapping(value = "", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ApiResponseDto add(@RequestBody Object o) throws BackendException {
-        try {
-            return new ApiResponseDto(true, ((CreativeSongService) service).save(o));
-        } catch (Exception e) {
-            throw new BackendException(this.name + " 등록 중 오류발생", e);
-        }
-    }
-
-    /**
      * 파일 업로드
-     * @param data
-     * @param files
-     * @return
-     * @throws BackendException
+     *
+     * @param dto 등록할 데이터 DTO
+     * @param files 파일 목록
+     * @return 성공/실패 여부
      */
     @RequestMapping(value = "upload", method = RequestMethod.POST, produces = MediaType.ALL_VALUE)
     public ApiResponseDto upload(
-            @RequestPart(value = "data") Object data,
+            @RequestPart(value = "data") Object dto,
             @RequestPart(value = "files") MultipartFile[] files
     ) throws BackendException {
         try {
-            return new ApiResponseDto(true, ((CreativeSongService) service).add(data, files));
+            return new ApiResponseDto(true, ((CreativeSongService) service).add(dto, files));
         } catch (Exception e) {
             throw new BackendException(this.name + " 등록 중 오류발생", e);
         }
     }
-
 
     /**
      *  파일 다운로드
@@ -115,6 +99,13 @@ public class CreativeSongController extends AdminRestController {
         }
     }
 
+    /**
+     * 파일 Bytes 가져오기
+     *
+     * @param id 조회할 데이터 ID
+     * @param fileName 파일 명
+     * @return 파일 Bytes
+     */
     @RequestMapping(value = "getFiletoByte", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public byte[] audio(@RequestParam(value = "id") String id,
                         @RequestParam(value = "fileName") String fileName) throws BackendException {

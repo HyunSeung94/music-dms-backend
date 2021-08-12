@@ -3,26 +3,19 @@ package com.mesim.sc.service.admin.authority;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mesim.sc.exception.BackendException;
-import com.mesim.sc.exception.ExceptionHandler;
-import com.mesim.sc.repository.PageWrapper;
 import com.mesim.sc.repository.rdb.CrudRepository;
 import com.mesim.sc.repository.rdb.admin.authority.AuthorityMenuMapper;
-import com.mesim.sc.repository.rdb.admin.authority.AuthorityMenuMapperRepository;
 import com.mesim.sc.service.UpdateMapperDto;
 import com.mesim.sc.service.admin.AdminService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -37,41 +30,14 @@ public class AuthorityMenuMapperService extends AdminService {
 
     @PostConstruct
     public void init () {
-        this.searchFields = new String[]{"name"};
-        this.joinedSortField = new String[]{"menu"};
+        this.selectField = "authoritySq";
+        this.joinedSortField = new String[]{"authority", "menu"};
+        this.searchFields = new String[]{"authorityName", "menuName"};
 
-        this.addRefEntity("menu", "pid");
+        this.addRefEntity("authority", "name");
+        this.addRefEntity("menu", "name");
 
         super.init();
-    }
-
-    @Override
-    public List<AuthorityMenuMapperDto> get(String id) {
-        int roleId = Integer.parseInt(id);
-        List<AuthorityMenuMapper> list = ((AuthorityMenuMapperRepository) this.repository).findAllByRoleId(roleId);
-
-        return list.stream()
-            .map(AuthorityMenuMapperDto::new)
-            .collect(Collectors.toList());
-    }
-
-    public PageWrapper getListPage(String id, int index, int size) {
-        int roleId = Integer.parseInt(id);
-        String[] sortProperties = { "menuPid;asc" };
-
-        PageRequest pageRequest = super.getPageRequest(index, size, sortProperties);
-
-        Page<AuthorityMenuMapper> page = ((AuthorityMenuMapperRepository) this.repository).findAllByRoleId(roleId, pageRequest);
-
-        PageWrapper result = new PageWrapper(page);
-        final AtomicInteger i = new AtomicInteger(1);
-
-        result.setList(page.get()
-            .map(ExceptionHandler.wrap(entity -> this.toDto(entity, i.getAndIncrement() + (result.getNumber() * size))))
-            .collect(Collectors.toList())
-        );
-
-        return result;
     }
 
     @Transactional
@@ -124,4 +90,5 @@ public class AuthorityMenuMapperService extends AdminService {
 
         return true;
     }
+
 }

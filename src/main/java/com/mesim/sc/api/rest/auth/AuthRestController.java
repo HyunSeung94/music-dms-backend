@@ -2,8 +2,11 @@ package com.mesim.sc.api.rest.auth;
 
 import com.mesim.sc.api.ApiResponseDto;
 
+import com.mesim.sc.constants.CodeConstants;
+import com.mesim.sc.service.admin.system.UserConnectService;
 import com.mesim.sc.service.auth.AuthService;
 
+import com.mesim.sc.util.HttpUtil;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +28,8 @@ public class AuthRestController {
     @Autowired
     private AuthService authService;
 
+    @Autowired
+    private UserConnectService userConnectService;
 
     /**
      * 토근발행여부 조회
@@ -73,11 +78,11 @@ public class AuthRestController {
     public ApiResponseDto logout(HttpServletRequest request, Authentication authentication) {
         try {
             this.authService.logout(authentication);
-//            this.userConnectService.save(authentication, CodeConstants.CONN_LOGOUT, HttpUtil.getIP(request));
+            this.userConnectService.save(authentication, CodeConstants.CONN_LOGOUT, HttpUtil.getIP(request));
             return new ApiResponseDto(true);
         } catch(Exception e) {
             log.error("로그아웃 처리 중 오류발생", e);
-//            this.userConnectService.save(authentication, CodeConstants.CONN_LOGOUT, HttpUtil.getIP(request), e);
+            this.userConnectService.save(authentication, CodeConstants.CONN_LOGOUT, HttpUtil.getIP(request), e);
             return new ApiResponseDto(false, null);
         }
     }

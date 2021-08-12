@@ -5,8 +5,9 @@ import com.mesim.sc.api.ApiResponseDto;
 import com.mesim.sc.constants.CodeConstants;
 import com.mesim.sc.constants.SecurityConstants;
 import com.mesim.sc.exception.BackendException;
-import com.mesim.sc.service.admin.group.UserDto;
-import com.mesim.sc.service.admin.group.UserService;
+import com.mesim.sc.service.admin.system.UserConnectService;
+import com.mesim.sc.service.admin.user.UserDto;
+import com.mesim.sc.service.admin.user.UserService;
 import com.mesim.sc.util.HttpUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
@@ -27,12 +28,12 @@ import java.io.IOException;
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
 
     private final AuthenticationManager authenticationManager;
-//    private final UserConnectService userConnectService;
+    private final UserConnectService userConnectService;
     private final UserService userService;
 
     public JwtAuthenticationFilter(AuthenticationManager authenticationManager, ApplicationContext ctx) {
         this.authenticationManager = authenticationManager;
-//        this.userConnectService = ctx.getBean(UserConnectService.class);
+        this.userConnectService = ctx.getBean(UserConnectService.class);
         this.userService = ctx.getBean(UserService.class);
         setFilterProcessesUrl(SecurityConstants.AUTH_LOGIN_URL);
     }
@@ -54,7 +55,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
             try {
                 if (attemptCount >= 5) {
-//                    this.userConnectService.save(userId, CodeConstants.CONN_LOGIN, HttpUtil.getIP(request), CodeConstants.CONN_ERR_INFO);
+                    this.userConnectService.save(userId, CodeConstants.CONN_LOGIN, HttpUtil.getIP(request), CodeConstants.CONN_ERR_INFO);
                     response.setStatus(HttpStatus.SC_NOT_ACCEPTABLE);
                     return null;
                 }
@@ -66,14 +67,15 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
                 log.info("username : {}, isAuthenticated : {}", userId, isAuthenticated);
 
-//                this.userConnectService.save(userId, CodeConstants.CONN_LOGIN, HttpUtil.getIP(request));
+                this.userConnectService.save(userId, CodeConstants.CONN_LOGIN, HttpUtil.getIP(request));
 
+                userInfo.setPassword(password);
                 userInfo.setPwTry(0);
                 this.userService.save(userInfo);
 
                 return authentication;
             } catch (BadCredentialsException e) {
-//                this.userConnectService.save(userId, CodeConstants.CONN_LOGIN, HttpUtil.getIP(request), CodeConstants.CONN_ERR_INFO);
+                this.userConnectService.save(userId, CodeConstants.CONN_LOGIN, HttpUtil.getIP(request), CodeConstants.CONN_ERR_INFO);
                 response.setStatus(HttpStatus.SC_UNAUTHORIZED);
                 if (attemptCount > -1) {
                     attemptCount++;
@@ -84,7 +86,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
             return null;
 
-        } catch(IOException | BackendException e) {
+        } catch (IOException | BackendException e) {
             throw new RuntimeException(e);
         }
     }

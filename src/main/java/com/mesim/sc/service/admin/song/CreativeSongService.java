@@ -51,7 +51,9 @@ public class CreativeSongService extends AdminService {
 
     @PostConstruct
     public void init () {
-        this.searchFields = new String[]{"id", "genre","composer","lyricist"};
+        this.searchFields = new String[]{"id", "genre", "composer", "lyricist"};
+        this.selectSortField = "songNm";
+
         super.init();
     }
 
@@ -83,86 +85,9 @@ public class CreativeSongService extends AdminService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * 저장 (생성 또는 수정)
-     *
-     * @param o 데이터
-     * @return 저장된 데이터
-     */
-    public Object save(Object o) throws BackendException {
-        Object entity = this.toEntity(o);
-        Object result = this.repository.saveAndFlush(entity);
-        this.entityManager.refresh(result);
-        return this.toDto(result, 0);
-    }
-
-    public Object add(Object data, MultipartFile[] files) throws BackendException {
-        CreativeSongDto savedSongDto = (CreativeSongDto) this.save(data);
-
-        String filePath = FileUtil.makePath(this.fileBasePath, this.songPath+System.getProperty("file.separator")+savedSongDto.getSongCd());
-        String tempPath = FileUtil.makePath(this.fileBasePath, this.fileTempPath);
-
-
-        try {
-            for (MultipartFile file : files) {
-                FileUtil.moveFile(filePath,file.getOriginalFilename(),tempPath);
-            }
-        } catch (IOException e) {
-            throw new BackendException("파일 업로드 중 오류 발생", e);
-        }
-
-        return savedSongDto;
-    }
-
-    public byte[] fileDownload(String id,String fileName)  throws BackendException {
-        String filePath = FileUtil.makePath(this.fileBasePath, this.songPath+System.getProperty("file.separator")+id+System.getProperty("file.separator")+fileName);
-        return FileUtil.download(filePath);
-    }
-
-    public byte[] fileAllDownload(String id)  throws BackendException {
-
-        String filePath = FileUtil.makePath(this.fileBasePath, this.songPath+System.getProperty("file.separator")+id);
-        String outPath = FileUtil.makePath(this.fileBasePath, this.songPath+System.getProperty("file.separator")+id);
-        List<String> fileList = FileUtil.fileList(filePath);
-        File zipFile = FileUtil.compress(outPath,filePath,fileList);
-        String zipFilePath = FileUtil.makePath(this.fileBasePath, this.songPath+System.getProperty("file.separator")+id+System.getProperty("file.separator")+zipFile.getName());
-        byte[] zipFileByte = FileUtil.download(zipFilePath);
-
-        File deleteFile = new File(zipFilePath);
-        if (deleteFile.exists()) {
-            deleteFile.delete();
-        }
-
-        return zipFileByte;
-
-    }
-
-
-    @Override
-    public boolean delete(Object o) throws BackendException {
-        Map<String, Object> map = (Map<String, Object>) o;
-        List<Object> deleteObjects =((List<Object>) map.get("ids"))
-                .stream()
-                .map(ExceptionHandler.wrap(object -> this.toEntity(object)))
-                .collect(Collectors.toList());
-        this.repository.deleteAll(deleteObjects);
-
-        List<Map<String,Object>> list = (List<Map<String, Object>>) map.get("ids");
-        for (int i=0; i<list.size(); i++){
-
-            String id = list.get(i).get("id").toString();
-            String filePath = FileUtil.makePath(this.fileBasePath, this.songPath+System.getProperty("file.separator")+id);
-
-            FileUtil.deleteFile(filePath);
-        }
-
-
-        return true;
-    }
-
     @Override
     public Object get(String id) {
-        String filePath = this.fileBasePath+System.getProperty("file.separator")+this.songPath+System.getProperty("file.separator")+id;
+        String filePath = FileUtil.makePath(this.fileBasePath, this.songPath, id);
         List<String> fileNameList = FileUtil.fileList(filePath);
 
         Optional<Object> optEntity = this.repository.findById(id);
@@ -172,19 +97,78 @@ public class CreativeSongService extends AdminService {
                 CreativeSongDto dto = (CreativeSongDto) toDto(o, 0);
                 dto.setFileList(fileNameList);
                 return dto;
-//                return this.toDto(o, 0);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
         }).orElse(null);
     }
 
+    @Override
+    public Object add(Object data, MultipartFile[] files) throws BackendException {
+        CreativeSongDto savedSongDto = (CreativeSongDto) this.save(data);
+
+        String filePath = FileUtil.makePath(this.fileBasePath, this.songPath, savedSongDto.getSongCd());
+        String tempPath = FileUtil.makePath(this.fileBasePath, this.fileTempPath);
+
+        try {
+            for (MultipartFile file : files) {
+                FileUtil.moveFile(filePath, file.getOriginalFilename(), tempPath);
+            }
+        } catch (IOException e) {
+            throw new BackendException("파일 업로드 중 오류 발생", e);
+        }
+
+        return savedSongDto;
+    }
+
+    @Override
+    public boolean delete(Object o) {
+        Map<String, Object> map = (Map<String, Object>) o;
+        List<Object> deleteObjects =((List<Object>) map.get("ids"))
+                .stream()
+                .map(ExceptionHandler.wrap(object -> this.toEntity(object)))
+                .collect(Collectors.toList());
+
+        this.repository.deleteAll(deleteObjects);
+
+        List<Map<String,Object>> list = (List<Map<String, Object>>) map.get("ids");
+
+        for (int i = 0; i < list.size(); i++){
+            String id = list.get(i).get("id").toString();
+            String filePath = FileUtil.makePath(this.fileBasePath, this.songPath, id);
+
+            FileUtil.deleteFile(filePath);
+        }
+
+        return true;
+    }
+
+    public byte[] fileDownload(String id,String fileName)  throws BackendException {
+        String filePath = FileUtil.makePath(this.fileBasePath, this.songPath, id, fileName);
+        return FileUtil.download(filePath);
+    }
+
+    public byte[] fileAllDownload(String id) throws BackendException {
+        String filePath = FileUtil.makePath(this.fileBasePath, this.songPath, id);
+        String outPath = FileUtil.makePath(this.fileBasePath, this.songPath, id);
+
+        List<String> fileList = FileUtil.fileList(filePath);
+        File zipFile = FileUtil.compress(outPath,filePath,fileList);
+        String zipFilePath = FileUtil.makePath(this.fileBasePath, this.songPath, id, zipFile.getName());
+        byte[] zipFileByte = FileUtil.download(zipFilePath);
+
+        File deleteFile = new File(zipFilePath);
+        if (deleteFile.exists()) {
+            deleteFile.delete();
+        }
+
+        return zipFileByte;
+    }
+
     public byte[] getFiletoByte(String songCd, String fileName) throws BackendException {
-//        Map<String, Object> map = (Map<String, Object>) o;
-//        String songCd = map.get("songCd").toString();
-//        String fileName = map.get("fileName").toString();
-        String soundPath = FileUtil.makePath(this.fileBasePath, this.songPath+System.getProperty("file.separator")+songCd+System.getProperty("file.separator")+fileName);
+        String soundPath = FileUtil.makePath(this.fileBasePath, this.songPath, songCd, fileName);
         File soundFile = new File(soundPath);
+
         try {
             if (soundFile != null) {
                 return FileUtil.download(soundPath);

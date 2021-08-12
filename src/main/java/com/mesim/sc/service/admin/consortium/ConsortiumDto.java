@@ -1,17 +1,13 @@
 package com.mesim.sc.service.admin.consortium;
 
-import com.mesim.sc.repository.rdb.admin.code.Code;
 import com.mesim.sc.repository.rdb.admin.consortium.Consortium;
 import com.mesim.sc.service.admin.AdminDto;
-import com.mesim.sc.util.DateUtil;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
-import javax.persistence.Column;
-import javax.persistence.Id;
-
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class ConsortiumDto extends AdminDto {
-
 
     private String id;
     private String groupId;
@@ -57,4 +53,5 @@ public class ConsortiumDto extends AdminDto {
                 .level(this.level)
                 .build();
     }
+
 }

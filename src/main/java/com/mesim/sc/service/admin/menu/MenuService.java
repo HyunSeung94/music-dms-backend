@@ -16,20 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/**
- * @author sunhye
- * @version 1.0
- * @see <pre>
- * == 개정이력 (Modification Information) ==
- *
- * 수정일    수정자    수정내용
- * -------  -------  ----------------
- * 2020-03-31  sunhye  최초생성
- *
- * </pre>
- * @since 2020-03-31
- */
-
 @Slf4j
 @Service
 @Qualifier("menuService")
@@ -44,19 +30,15 @@ public class MenuService extends AdminService {
 
     @PostConstruct
     public void init () {
-        this.searchFields = new String[]{"name"};
-        this.defaultSortField = "sort";
+        this.defaultSortField = "menuOrd";
         this.joinedSortField = new String[]{"pmenu"};
+        this.searchFields = new String[]{"pmenuName", "name"};
+        this.excludeColumn = new String[]{"pid", "pName", "children"};
+        this.root.put("id", CommonConstants.MENU_ROOT_ID);
 
         this.addRefEntity("pmenu","name");
 
-        this.excludeColumn = new String[]{"pid", "pName", "children"};
-
         super.init();
-    }
-
-    public Object getListSelect() {
-        return ((MenuRepository) this.repository).findAllByIdNotOrderByName(CommonConstants.MENU_ROOT_ID);
     }
 
     public Map<String, String> getUrl(int id, int msgConvertHistoryId) {
@@ -83,9 +65,17 @@ public class MenuService extends AdminService {
 
             map.put("url", url);
 
+//            Optional<MsgConvertHistory> optHistory = this.msgConvertHistoryRepository.findById(msgConvertHistoryId);
+//
+//            if (optHistory.isPresent()) {
+//                MsgConvertHistory history = optHistory.get();
+//                map.put("trnsId", history.getTrnsId());
+//                map.put("data", history.getConvertData());
+//            }
             return map;
         } else {
             return null;
         }
     }
+
 }

@@ -13,9 +13,4 @@ public interface ConsortiumRepository extends AdminRepository<Consortium, String
 
     Page<Consortium> findAll(Specification<Object> specification, Pageable pageable);
 
-    List<Consortium> findAllByGroupIdAndRoleOrderById(String groupId,String role);
-
-    List<Consortium> findAllByGroupIdOrderById(String groupId);
-
-
 }

@@ -5,15 +5,11 @@ import com.mesim.sc.api.rest.admin.AdminRestController;
 import com.mesim.sc.exception.BackendException;
 import com.mesim.sc.service.CrudService;
 import com.mesim.sc.service.Inspection.InspectionService;
-import com.mesim.sc.service.admin.code.CodeService;
-import com.mesim.sc.service.admin.group.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.ArrayList;
 
 @Slf4j
 @RestController

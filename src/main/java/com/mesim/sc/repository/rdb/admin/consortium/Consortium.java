@@ -1,20 +1,14 @@
 package com.mesim.sc.repository.rdb.admin.consortium;
 
-import com.mesim.sc.repository.rdb.CrudEntity;
-
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
-import org.hibernate.annotations.NotFound;
-import org.hibernate.annotations.NotFoundAction;
 
 import javax.persistence.*;
 
 @NoArgsConstructor
 @Getter
 @Entity(name = "TB_ADMIN_IT_CONSORTIUM")
-@ToString
 public class Consortium {
 
     @Id
@@ -52,7 +46,19 @@ public class Consortium {
     protected String level;
 
     @Builder
-    public Consortium(String id, String groupId, String consortiumNm, Integer ballade, Integer dance, Integer agitation, String role, String argRange, String toneColor, String gender, String level) {
+    public Consortium(
+            String id,
+            String groupId,
+            String consortiumNm,
+            Integer ballade,
+            Integer dance,
+            Integer agitation,
+            String role,
+            String argRange,
+            String toneColor,
+            String gender,
+            String level
+    ) {
         this.id = id;
         this.groupId = groupId;
         this.consortiumNm = consortiumNm;
@@ -65,4 +71,5 @@ public class Consortium {
         this.gender = gender;
         this.level = level;
     }
+
 }

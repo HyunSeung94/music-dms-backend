@@ -4,14 +4,16 @@ import com.mesim.sc.repository.rdb.admin.group.Group;
 import com.mesim.sc.service.admin.AdminDto;
 import com.mesim.sc.util.DateUtil;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class GroupDto extends AdminDto {
 
     private int id;
-    private String name;
     private int pid;
     private String pName;
+    private String name;
     private String typeCd;
     private String typeNm;
     private String phone;
@@ -22,9 +24,9 @@ public class GroupDto extends AdminDto {
 
     public GroupDto(Group entity) {
         this.id = entity.getId();
-        this.name = entity.getName();
         this.pid = entity.getPid();
         this.pName = entity.getPgroup() != null ? entity.getPgroup().getName() : null;
+        this.name = entity.getName();
         this.typeCd = entity.getTypeCd();
         this.typeNm = entity.getType() != null ? entity.getType().getName() : null;
         this.phone = entity.getPhone();
@@ -52,4 +54,5 @@ public class GroupDto extends AdminDto {
                 .modId(this.modId == null ? this.regId : this.modId)
                 .build();
     }
+
 }
