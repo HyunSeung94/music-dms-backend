@@ -18,7 +18,7 @@ public class Inspection extends CrudEntity {
     @Column(name = "ID")
     @SequenceGenerator(name = "COL_GEN_INSPECTION_ID_SEQ", sequenceName = "INSPECTION_ID_SEQ", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "COL_GEN_INSPECTION_ID_SEQ")
-    private String id;
+    private int id;
 
     @Column(name = "INSPECTION_ID")
     private String inspectionId;
@@ -29,7 +29,7 @@ public class Inspection extends CrudEntity {
     @Column(name = "CONTENTS_CD")
     private String contentsCd;
 
-    @Column(name = "ARRANGE_CD")
+    @Column(name = "ARRANGE_ID")
     private Integer arrangeId;
 
     @Column(name = "RESULT_INS")
@@ -41,7 +41,7 @@ public class Inspection extends CrudEntity {
     private InspectionInfo inspectionInfo;
 
     @Builder
-    public Inspection(String id, InspectionInfo inspectionInfo, String inspectionId, String songCd, String contentsCd, Integer arrangeId, String resultIns, String regId, String modId) {
+    public Inspection(int id, InspectionInfo inspectionInfo, String inspectionId, String songCd, String contentsCd, Integer arrangeId, String resultIns, String regId, String modId) {
         super(regId, modId);
         this.id = id;
         this.inspectionInfo = inspectionInfo;
