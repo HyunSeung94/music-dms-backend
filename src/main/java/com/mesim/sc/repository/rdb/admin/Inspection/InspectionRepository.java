@@ -12,6 +12,13 @@ import java.util.List;
 public interface InspectionRepository extends AdminRepository<Inspection, String> {
 
     Page<Inspection> findAll(Specification<Object> specification, Pageable pageable);
+
     List<Inspection> findAllById(String id);
+
+    void deleteBySongCd(String songCd);
+
+    void deleteByContentsCd(String contentsCd);
+
+    void deleteByArrangeId(int arrangeId);
 
 }

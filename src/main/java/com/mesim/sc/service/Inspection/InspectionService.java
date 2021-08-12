@@ -1,6 +1,5 @@
 package com.mesim.sc.service.Inspection;
 
-import com.mesim.sc.exception.BackendException;
 import com.mesim.sc.repository.rdb.CrudRepository;
 import com.mesim.sc.repository.rdb.admin.Inspection.Inspection;
 import com.mesim.sc.repository.rdb.admin.Inspection.InspectionRepository;
@@ -11,7 +10,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,40 +27,42 @@ public class InspectionService extends AdminService {
 
     @PostConstruct
     public void init () {
-        this.searchFields = new String[]{"id", "inspection_id","result_ins"};
+        this.searchFields = new String[]{"id", "inspection_id", "result_ins"};
+
         super.init();
     }
 
-
-
-    public Object getList(String id) {
-        return ((InspectionRepository) this.repository).findAllById(id)
-                .stream()
-                .map(InspectionDto::new)
-                .collect(Collectors.toList());
-    }
-
-    public Object saveAll(Object o) throws IOException, BackendException {
-        List<Inspection> list = new ArrayList<>();
-        list = (ArrayList) o;
+    public Object saveAll(Object o) {
+        List<Inspection> list = (ArrayList) o;
         List<Inspection> inspectionList = new ArrayList<>();
-        for (int i=0;  i<list.size(); i++) {
+
+        for (int i = 0;  i < list.size(); i++) {
             InspectionDto inspectionDto = super.mapper.convertValue(list.get(i), InspectionDto.class);
 
             Inspection inspection = Inspection.builder()
                     .id(inspectionDto.getId())
                     .inspectionId(inspectionDto.getInspectionId())
+                    .songCd(inspectionDto.getSongCd())
+                    .contentsCd(inspectionDto.getContentsCd())
+                    .arrangeId(inspectionDto.getArrangeId())
                     .resultIns(inspectionDto.getResultIns())
                     .regId(inspectionDto.getRegId())
                     .modId(inspectionDto.getModId())
                     .build();
+
             inspectionList.add(inspection);
         }
 
-//        List<Object> objList = (List<Object>) o;
-//        List<Object> inspectionList = objList.stream()
-//                .map(ExceptionHandler.wrap(data -> this.toEntity(data)))
-//                .collect(Collectors.toList());
+        if (inspectionList.size() > 0) {
+            Inspection temp = inspectionList.get(0);
+            if (temp.getSongCd() != null) {
+                ((InspectionRepository) this.repository).deleteBySongCd(temp.getSongCd());
+            } else if (temp.getContentsCd() != null) {
+                ((InspectionRepository) this.repository).deleteByContentsCd(temp.getContentsCd());
+            } else if (temp.getArrangeId() != null) {
+                ((InspectionRepository) this.repository).deleteByArrangeId(temp.getArrangeId());
+            }
+        }
 
        return  ((InspectionRepository) this.repository).saveAll(inspectionList);
     }
