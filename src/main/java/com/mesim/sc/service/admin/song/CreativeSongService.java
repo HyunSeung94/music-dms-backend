@@ -124,14 +124,14 @@ public class CreativeSongService extends AdminService {
     @Override
     public boolean delete(Object o) {
         Map<String, Object> map = (Map<String, Object>) o;
-        List<Object> deleteObjects =((List<Object>) map.get("ids"))
+        List<Object> deleteObjects =((List<Object>) map.get("data"))
                 .stream()
                 .map(ExceptionHandler.wrap(object -> this.toEntity(object)))
                 .collect(Collectors.toList());
 
         this.repository.deleteAll(deleteObjects);
 
-        List<Map<String,Object>> list = (List<Map<String, Object>>) map.get("ids");
+        List<Map<String,Object>> list = (List<Map<String, Object>>) map.get("data");
 
         for (int i = 0; i < list.size(); i++){
             String id = list.get(i).get("id").toString();
