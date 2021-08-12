@@ -52,9 +52,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/**/**/**").authenticated()
                 .antMatchers("/api/**/**/**/**").authenticated()
                 .antMatchers("/api/auth/login").permitAll()
-                .antMatchers("/api/admin/song/getSound/**").permitAll()
-                .antMatchers("/api/admin/song/getSound/**/**").permitAll()
                 .antMatchers("/api/admin/song/getFiletoByte").permitAll()
+                .antMatchers("/api/admin/vocal/getFiletoByte").permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .addFilter(new JwtAuthenticationFilter(authenticationManager(), getApplicationContext()))
@@ -70,7 +69,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     public void configure(WebSecurity web) throws Exception {
         web.ignoring()
                 .antMatchers("/api/auth/checkExist")
-                .antMatchers("/api/admin/song/getFiletoByte");
+                .antMatchers("/api/admin/song/getFiletoByte")
+                .antMatchers("/api/admin/vocal/getFiletoByte");
     }
 
     @Override

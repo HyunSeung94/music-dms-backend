@@ -42,6 +42,26 @@ public class VocalController extends AdminRestController {
     }
 
     /**
+     * 파일 업로드
+     *
+     * @param dto 등록할 데이터 DTO
+     * @param files 파일 목록
+     * @return 성공/실패 여부
+     */
+    @RequestMapping(value = "upload", method = RequestMethod.POST, produces = MediaType.ALL_VALUE)
+    public ApiResponseDto upload(
+            @RequestPart(value = "data") Object dto,
+            @RequestPart(value = "files") MultipartFile[] files
+    ) throws BackendException {
+        try {
+            return new ApiResponseDto(true, ((VocalService) service).add(dto, files));
+        } catch (Exception e) {
+            throw new BackendException(this.name + " 등록 중 오류발생", e);
+        }
+    }
+
+
+    /**
      *  파일 다운로드
      *
      * @param id 상세 조회할 데이터 ID

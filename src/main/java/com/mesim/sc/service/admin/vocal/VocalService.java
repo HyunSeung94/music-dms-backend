@@ -83,14 +83,13 @@ public class VocalService extends AdminService {
 
     @Override
     public Object get(String id) {
-        String filePath = FileUtil.makePath(this.fileBasePath, this.songPath, id);
-        List<String> fileNameList = FileUtil.fileList(filePath);
-
         Optional<Object> optEntity = this.repository.findById(id);
 
         return optEntity.map(o -> {
             try {
                 VocalDto dto = (VocalDto) toDto(o, 0);
+                String filePath = FileUtil.makePath(this.fileBasePath, this.songPath, dto.getSongCd());
+                List<String> fileNameList = FileUtil.fileList(filePath);
                 dto.setFileList(fileNameList);
                 return dto;
             } catch (Exception e) {
