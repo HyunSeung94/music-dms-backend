@@ -23,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -39,6 +40,11 @@ public class VocalService extends AdminService {
 
     @Value("${file.data.song.path}")
     private String songPath;
+
+    @Value("${file.data.vocal.path}")
+    private String vocalPath;
+
+
 
     @Value("${file.data.temp.path}")
     private String fileTempPath;
@@ -100,7 +106,7 @@ public class VocalService extends AdminService {
         return optEntity.map(o -> {
             try {
                 VocalDto dto = (VocalDto) toDto(o, 0);
-                String filePath = FileUtil.makePath(this.fileBasePath, this.songPath, dto.getSongCd());
+                String filePath = FileUtil.makePath(this.fileBasePath, this.vocalPath, dto.getId());
                 List<String> fileNameList = FileUtil.fileList(filePath);
                 dto.setFileList(fileNameList);
                 return dto;
@@ -114,7 +120,7 @@ public class VocalService extends AdminService {
     public Object add(Object data, MultipartFile[] files) throws BackendException {
         VocalDto savedVocalDto = (VocalDto) this.save(data);
 
-        String filePath = FileUtil.makePath(this.fileBasePath, this.songPath, savedVocalDto.getSongCd());
+        String filePath = FileUtil.makePath(this.fileBasePath, this.vocalPath, savedVocalDto.getId());
         String tempPath = FileUtil.makePath(this.fileBasePath, this.fileTempPath);
 
         try {
@@ -151,29 +157,49 @@ public class VocalService extends AdminService {
     }
 
     public byte[] fileDownload(String id,String fileName)  throws BackendException {
-        String filePath = FileUtil.makePath(this.fileBasePath, this.songPath, id, fileName);
+        String filePath = FileUtil.makePath(this.fileBasePath, this.vocalPath, id, fileName);
         return FileUtil.download(filePath);
     }
 
     public byte[] fileAllDownload(String id) throws BackendException {
-        String filePath = FileUtil.makePath(this.fileBasePath, this.songPath, id);
-        String outPath = FileUtil.makePath(this.fileBasePath, this.songPath, id);
 
-        List<String> fileList = FileUtil.fileList(filePath);
-        File zipFile = FileUtil.compress(outPath,filePath,fileList);
-        String zipFilePath = FileUtil.makePath(this.fileBasePath, this.songPath, id, zipFile.getName());
-        byte[] zipFileByte = FileUtil.download(zipFilePath);
+        Optional<Object> optEntity = this.repository.findById(id);
 
-        File deleteFile = new File(zipFilePath);
-        if (deleteFile.exists()) {
-            deleteFile.delete();
-        }
+                optEntity.map(o -> {
+            try {
+                VocalDto dto = (VocalDto) toDto(o, 0);
 
-        return zipFileByte;
+                String songFilePath = FileUtil.makePath(this.fileBasePath, this.songPath,dto.getSongCd() );
+                String vocalFilePath = FileUtil.makePath(this.fileBasePath, this.vocalPath, id);
+
+                List<String> fileList = new ArrayList<>();
+                FileUtil.fileList(songFilePath).forEach(f -> {
+                    fileList.add(songFilePath +System.getProperty("file.separator")+ f);
+                });
+                FileUtil.fileList(vocalFilePath).forEach(f -> {
+                    fileList.add(vocalFilePath +System.getProperty("file.separator")+ f);
+                });
+
+                String outPath = FileUtil.makePath(this.fileBasePath, this.vocalPath, id);
+                File zipFile = FileUtil.compress(outPath,fileList);
+                String zipFilePath = FileUtil.makePath(this.fileBasePath, this.vocalPath, id, zipFile.getName());
+                byte[] zipFileByte = FileUtil.download(zipFilePath);
+
+                File deleteFile = new File(zipFilePath);
+                if (deleteFile.exists()) {
+                    deleteFile.delete();
+                }
+                return zipFileByte;
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }).orElse(null);
+
+        return null;
     }
 
     public byte[] getFiletoByte(String songCd, String fileName) throws BackendException {
-        String soundPath = FileUtil.makePath(this.fileBasePath, this.songPath, songCd, fileName);
+        String soundPath = FileUtil.makePath(this.fileBasePath, this.vocalPath, songCd, fileName);
         File soundFile = new File(soundPath);
 
         try {

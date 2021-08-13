@@ -301,6 +301,76 @@ public class FileUtil {
         return zipFile;
     }
 
+    public static File compress(String outPath, List<String> fileList) throws BackendException {
+        byte[] buf = new byte[BUF_SIZE];
+
+
+        File zipFile = null;
+        FileInputStream fis = null;
+        ZipArchiveOutputStream zos = null;
+        BufferedInputStream bis = null;
+
+        try {
+            if (!(new File(outPath).exists())) {
+                FileUtils.forceMkdir(new File(outPath));
+            }
+
+            zipFile = new File(outPath, UUID.randomUUID().toString() + ".zip");
+
+            zos = new ZipArchiveOutputStream(new BufferedOutputStream(new FileOutputStream(zipFile)));
+
+            for (String file : fileList) {
+
+
+                // 디렉토리 안의 다른 디렉토리는 무시
+                if (new File(file).isDirectory()) {
+                    continue;
+                }
+
+                zos.setEncoding("UTF-8");
+
+                int index = file.lastIndexOf(System.getProperty("file.separator"));
+                String fileName= file.substring(index);
+
+                fis = new FileInputStream(file);
+                bis = new BufferedInputStream(fis, BUF_SIZE);
+                zos.putArchiveEntry(new ZipArchiveEntry(fileName));
+
+                int len;
+                while((len = bis.read(buf, 0, BUF_SIZE)) != -1){
+                    zos.write(buf, 0, len);
+                }
+
+                bis.close();
+                fis.close();
+                zos.closeArchiveEntry();
+
+            }
+            zos.close();
+
+        } catch (FileNotFoundException e) {
+            throw new BackendException("파일을 찾을 수 없습니다.", e);
+        } catch(IOException e) {
+            throw new BackendException("파일 읽는 중 오류가 발생했습니다.", e);
+        } finally {
+            try {
+                if (zos != null) {
+                    zos.close();
+                }
+                if (fis != null) {
+                    fis.close();
+                }
+                if (bis != null) {
+                    bis.close();
+                }
+            } catch (IOException e) {
+                throw new BackendException("자원 해제 중 오류가 발생했습니다.", e);
+            }
+        }
+
+        return zipFile;
+    }
+
     public static String getAudioBase64Str(String imgSrcPath) {
         String filePath = FileUtil.makePath(imgSrcPath);
         File file = new File(filePath);
