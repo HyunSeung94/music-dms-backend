@@ -33,14 +33,14 @@ public class UserRestController extends AdminRestController {
         }
     }
 
-    @RequestMapping(value = "confirmPassword", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ApiResponseDto confirmPassword(@RequestBody Object o) throws BackendException {
-        try {
-            return new ApiResponseDto(true, ((UserService) service).confirmPassword(o));
-        } catch (Exception e) {
-            throw new BackendException(this.name + " 비밀번호 확인 중 오류발생", e);
-        }
-    }
+//    @RequestMapping(value = "confirmPassword", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
+//    public ApiResponseDto confirmPassword(@RequestBody Object o) throws BackendException {
+//        try {
+//            return new ApiResponseDto(true, ((UserService) service).confirmPassword(o));
+//        } catch (Exception e) {
+//            throw new BackendException(this.name + " 비밀번호 확인 중 오류발생", e);
+//        }
+//    }
 
 //    @RequestMapping(value = "connectUser", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
 //    public ApiResponseDto connectUser() throws BackendException {

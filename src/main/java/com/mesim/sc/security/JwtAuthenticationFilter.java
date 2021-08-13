@@ -48,17 +48,22 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
             UserDto userInfo = (UserDto) this.userService.get(userId);
             if (userInfo != null) {
-                attemptCount = userInfo.getPwTry();
+                attemptCount = userInfo.getPwTry() != null ? userInfo.getPwTry() : 0;
+
+                if (userInfo.getPwModId() == null) {
+                    response.setStatus(HttpStatus.SC_LOCKED);
+                    return null;
+                }
             }
 
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userId, password);
 
             try {
-                if (attemptCount >= 5) {
-                    this.userConnectService.save(userId, CodeConstants.CONN_LOGIN, HttpUtil.getIP(request), CodeConstants.CONN_ERR_INFO);
-                    response.setStatus(HttpStatus.SC_NOT_ACCEPTABLE);
-                    return null;
-                }
+//                if (attemptCount >= 5) {
+//                    this.userConnectService.save(userId, CodeConstants.CONN_LOGIN, HttpUtil.getIP(request), CodeConstants.CONN_ERR_INFO);
+//                    response.setStatus(HttpStatus.SC_NOT_ACCEPTABLE);
+//                    return null;
+//                }
 
                 Authentication authentication = authenticationManager.authenticate(authenticationToken);
                 boolean isAuthenticated;

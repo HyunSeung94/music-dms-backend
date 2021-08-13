@@ -47,7 +47,7 @@ public class UserDto extends AdminDto {
         this.rmk = entity.getRmk();
         this.pwTry = entity.getPwTry();
         this.pwModId = entity.getPwModId();
-        this.pwModDate = entity.getPwModDate()  != null ? entity.getPwModDate() : DateUtil.toFormat(entity.getRegDate().getTime());
+        this.pwModDate = entity.getPwModDate() != null ? entity.getPwModDate() : DateUtil.toFormat(entity.getRegDate().getTime());
         this.imgSrc = entity.getImgSrc();
         this.regId = entity.getRegId();
         this.regDate = DateUtil.toFormat(entity.getRegDate().getTime());

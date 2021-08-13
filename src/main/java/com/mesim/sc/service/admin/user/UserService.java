@@ -10,6 +10,7 @@ import com.mesim.sc.repository.rdb.admin.user.UserRepository;
 
 import com.mesim.sc.security.JwtTokenProvider;
 import com.mesim.sc.service.admin.AdminService;
+import com.mesim.sc.util.DateUtil;
 import com.mesim.sc.util.PwEncoder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -30,6 +32,8 @@ import java.util.stream.Collectors;
 @Service
 @Qualifier("userService")
 public class UserService extends AdminService {
+
+    SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-dd");
 
     @Autowired
     @Qualifier("userRepository")
@@ -69,10 +73,10 @@ public class UserService extends AdminService {
 
             if (passwordChangeDto.getUserId().equals(passwordChangeDto.getChangeUserId())) {
                 userDto.setPwModId(passwordChangeDto.getUserId());
-                userDto.setPwModDate(userDto.getModDate());
+                userDto.setPwModDate(DateUtil.toFormat(Long.parseLong(userDto.getModDate())));
             } else {
                 userDto.setPwModId(passwordChangeDto.getChangeUserId());
-                userDto.setPwModDate(userDto.getRegDate());
+                userDto.setPwModDate(DateUtil.toFormat(Long.parseLong(userDto.getRegDate())));
             }
 
             return this.save(userDto);
@@ -81,22 +85,22 @@ public class UserService extends AdminService {
         }
     }
 
-    public boolean confirmPassword(Object o) throws BackendException {
-        PasswordChangeDto passwordChangeDto = this.mapper.convertValue(o, PasswordChangeDto.class);
-
-        Optional<User> optUser = ((UserRepository) this.repository).findById(passwordChangeDto.getUserId());
-
-        if (optUser.isPresent()) {
-            UserDto userDto = this.mapper.convertValue(optUser.get(), UserDto.class);
-
-            String originPw = userDto.getPassword();
-            String changePw = passwordChangeDto.getChangePassword();
-
-            return PwEncoder.notMatch(originPw, PwEncoder.encode(changePw));
-        } else {
-            throw new BackendException("존재하지 않는 사용자입니다.");
-        }
-    }
+//    public boolean confirmPassword(Object o) throws BackendException {
+//        PasswordChangeDto passwordChangeDto = this.mapper.convertValue(o, PasswordChangeDto.class);
+//
+//        Optional<User> optUser = ((UserRepository) this.repository).findById(passwordChangeDto.getUserId());
+//
+//        if (optUser.isPresent()) {
+//            UserDto userDto = this.mapper.convertValue(optUser.get(), UserDto.class);
+//
+//            String originPw = userDto.getPassword();
+//            String changePw = passwordChangeDto.getChangePassword();
+//
+//            return PwEncoder.notMatch(originPw, PwEncoder.encode(changePw));
+//        } else {
+//            throw new BackendException("존재하지 않는 사용자입니다.");
+//        }
+//    }
 
     public List<UserDto> connectUser() {
         return ((UserRepository) this.repository).findAllById(JwtTokenProvider.getTokenIds())
