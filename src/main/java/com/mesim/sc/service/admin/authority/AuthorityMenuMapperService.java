@@ -19,7 +19,7 @@ import java.util.List;
 
 @Slf4j
 @Service
-@Qualifier("roleMenuMapperService")
+@Qualifier("authorityMenuMapperService")
 public class AuthorityMenuMapperService extends AdminService {
 
     @Autowired
@@ -30,7 +30,7 @@ public class AuthorityMenuMapperService extends AdminService {
 
     @PostConstruct
     public void init () {
-        this.selectField = "authoritySq";
+        this.selectField = "authorityId";
         this.joinedSortField = new String[]{"authority", "menu"};
         this.searchFields = new String[]{"authorityName", "menuName"};
 
