@@ -1,5 +1,6 @@
 package com.mesim.sc.service.admin.vocal;
 
+import com.mesim.sc.constants.CommonConstants;
 import com.mesim.sc.exception.BackendException;
 import com.mesim.sc.exception.ExceptionHandler;
 import com.mesim.sc.repository.PageWrapper;
@@ -61,13 +62,21 @@ public class VocalService extends AdminService {
     }
 
     public PageWrapper getListPage(String regId, String regGroupNm, String[] select, int index, int size, String[] sortProperties, String[] keywords, String searchOp, String fromDate, String toDate) throws BackendException {
-        Specification<Object> spec = AdminSpecs.regId(regId).and(AdminSpecs.regGroupNm(regGroupNm));
+        Specification<Object> spec = null;
+
+        if (!regGroupNm.equals(CommonConstants.GROUP_ROOT_NM)) {
+            spec = AdminSpecs.regGroupNm(regGroupNm);
+
+            if (!regGroupNm.equals(CommonConstants.GROUP_CHILL_ROOT_NM) && !regGroupNm.equals(CommonConstants.GROUP_FKMP_ROOT_NM)) {
+                spec = spec == null ? AdminSpecs.regId(regId) : AdminSpecs.regId(regId).and(spec);
+            }
+        }
 
         PageRequest pageRequest = this.getPageRequest(index, size, sortProperties);
         Specification<Object> pageSpec = this.getSpec(select, keywords, searchOp, fromDate, toDate);
 
         if (pageSpec != null) {
-            spec = spec.and(pageSpec);
+            spec = spec == null ? pageSpec : spec.and(pageSpec);
         }
 
         Page<Object> page = this.repository.findAll(spec, pageRequest);
