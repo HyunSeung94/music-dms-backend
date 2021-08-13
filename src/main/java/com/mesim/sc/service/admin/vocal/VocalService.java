@@ -60,23 +60,26 @@ public class VocalService extends AdminService {
         super.init();
     }
 
-    public PageWrapper getListPage(String typeCd, int index, int size, String[] sortProperties, String[] keywords, String searchOp) throws BackendException {
-        Specification<Object> spec = AdminSpecs.typeCd(typeCd);
-        PageRequest pageRequest = super.getPageRequest(index, size, sortProperties);
+    public PageWrapper getListPage(String regId, String regGroupNm, String[] select, int index, int size, String[] sortProperties, String[] keywords, String searchOp, String fromDate, String toDate) throws BackendException {
+        Specification<Object> spec = AdminSpecs.regId(regId).and(AdminSpecs.regGroupNm(regGroupNm));
 
-        if (keywords != null && keywords.length > 0) {
-            spec = Specification.where(getSearchSpec(keywords, this.searchFieldSet, searchOp)).and(spec);
+        PageRequest pageRequest = this.getPageRequest(index, size, sortProperties);
+        Specification<Object> pageSpec = this.getSpec(select, keywords, searchOp, fromDate, toDate);
+
+        if (pageSpec != null) {
+            spec = spec.and(pageSpec);
         }
 
-        Page<Vocal> page = ((VocalRepository) this.repository).findAll(spec, pageRequest);
-
+        Page<Object> page = this.repository.findAll(spec, pageRequest);
         PageWrapper result = new PageWrapper(page);
-        final AtomicInteger i = new AtomicInteger(1);
+        final AtomicInteger seq = new AtomicInteger(1);
 
-        result.setList(page.get()
-                .map(ExceptionHandler.wrap(entity -> this.toDto(entity, i.getAndIncrement() + (result.getNumber() * size))))
-                .collect(Collectors.toList())
-        );
+        List<Object> list = page
+                .get()
+                .map(ExceptionHandler.wrap(entity -> this.toDto(entity, seq.getAndIncrement() + (result.getNumber() * size))))
+                .collect(Collectors.toList());
+
+        result.setList(list);
 
         return result;
     }

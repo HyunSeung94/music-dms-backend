@@ -17,7 +17,8 @@ public class ArrangeDto extends AdminDto {
     private String arrangerNm;
     private String arrangerRole;
     private String arrangeDate;
-    private String arrangerInspection;
+    private String regNm;
+    private String regGroupNm;
 
     private List fileList;
 
@@ -32,8 +33,11 @@ public class ArrangeDto extends AdminDto {
             this.arrangerRole = entity.getArranger().getRole();
         }
         this.arrangeDate = DateUtil.toFormat(entity.getArrangeDate().getTime());
-        this.arrangerInspection = entity.getArrangerInspection();
         this.regId = entity.getRegId();
+        if (entity.getRegUser() != null) {
+            this.regNm = entity.getRegUser().getName();
+            this.regGroupNm = entity.getRegUser().getGroup() != null ? entity.getRegUser().getGroup().getName() : null;
+        }
         this.regDate = DateUtil.toFormat(entity.getRegDate().getTime());
         this.modId = entity.getModId();
         this.modDate = DateUtil.toFormat(entity.getModDate().getTime());
@@ -46,7 +50,6 @@ public class ArrangeDto extends AdminDto {
                 .contentsCd(this.contentsCd)
                 .arrangerCd(this.arrangerCd)
                 .arrangeDate(this.arrangeDate.length() < 11 ? Date.valueOf(this.arrangeDate) : Date.valueOf(this.arrangeDate.substring(0,10)))
-                .arrangerInspection(this.arrangerCd)
                 .regId(this.regId)
                 .modId(this.modId == null ? this.regId : this.modId)
                 .build();

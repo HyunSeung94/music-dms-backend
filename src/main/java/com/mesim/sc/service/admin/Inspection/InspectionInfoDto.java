@@ -1,8 +1,7 @@
-package com.mesim.sc.service.Inspection;
+package com.mesim.sc.service.admin.Inspection;
 
 import com.mesim.sc.repository.rdb.admin.Inspection.InspectionInfo;
 import com.mesim.sc.service.CrudDto;
-import com.mesim.sc.service.admin.AdminDto;
 import com.mesim.sc.util.DateUtil;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

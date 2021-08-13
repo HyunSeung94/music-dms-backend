@@ -5,6 +5,7 @@ import com.mesim.sc.repository.rdb.admin.code.Code;
 import com.mesim.sc.repository.rdb.admin.consortium.Consortium;
 import com.mesim.sc.repository.rdb.admin.group.Group;
 import com.mesim.sc.repository.rdb.admin.song.CreativeSong;
+import com.mesim.sc.repository.rdb.admin.user.User;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -37,9 +38,6 @@ public class Vocal extends CrudEntity {
     @Column(name = "RECORD_DATE")
     private Date recordDate;
 
-    @Column(name = "RECORD_INSPECTION")
-    private String recordInspection;
-
     @Column(name = "VIBE")
     private String vibe;
 
@@ -70,8 +68,13 @@ public class Vocal extends CrudEntity {
     })
     private Code studio;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @NotFound(action = NotFoundAction.IGNORE)
+    @JoinColumn(name = "REG_ID", referencedColumnName = "USER_ID", insertable = false, updatable = false)
+    private User regUser;
+
     @Builder
-    public Vocal(String id, String songCd, String singerCd, String recordLength, Date recordDate, String recordInspection, String vibe, String studioCd, String micNm, String audioIfNm, String regId, String modId) {
+    public Vocal(String id, String songCd, String singerCd, String recordLength, Date recordDate, String vibe, String studioCd, String micNm, String audioIfNm, String regId, String modId) {
         super(regId, modId);
 
         this.id = id;
@@ -79,7 +82,6 @@ public class Vocal extends CrudEntity {
         this.singerCd = singerCd;
         this.recordLength = recordLength;
         this.recordDate = recordDate;
-        this.recordInspection = recordInspection;
         this.vibe = vibe;
         this.studioCd = studioCd;
         this.micNm = micNm;

@@ -1,11 +1,12 @@
-package com.mesim.sc.service.Inspection;
+package com.mesim.sc.service.admin.Inspection;
 
 import com.mesim.sc.repository.rdb.admin.Inspection.Inspection;
-import com.mesim.sc.service.CrudDto;
 import com.mesim.sc.service.admin.AdminDto;
 import com.mesim.sc.util.DateUtil;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class InspectionDto extends AdminDto {
 
@@ -46,4 +47,5 @@ public class InspectionDto extends AdminDto {
                 .modId(this.modId == null ? this.regId : this.modId)
                 .build();
     }
+
 }

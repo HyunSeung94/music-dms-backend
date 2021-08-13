@@ -27,15 +27,20 @@ public class VocalController extends AdminRestController {
         this.service = service;
     }
 
-    @RequestMapping(value = "listPage/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ApiResponseDto getList(@PathVariable(value = "id") String id,
+    @RequestMapping(value = "listPage/{regId}/{regGroupNm}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ApiResponseDto getList(@PathVariable(value = "regId") String regId,
+                                  @PathVariable(value = "regGroupNm") String regGroupNm,
+                                  @RequestParam(value = "select", required = false) String[] select,
                                   @RequestParam(value = "index") int index,
                                   @RequestParam(value = "size") int size,
                                   @RequestParam(value = "sortProperties", required = false) String[] sortProperties,
                                   @RequestParam(value = "keywords", required = false) String[] keywords,
-                                  @RequestParam(value = "searchOp", required = false) String searchOp) throws BackendException {
+                                  @RequestParam(value = "searchOp", required = false) String searchOp,
+                                  @RequestParam(value = "fromDate", required = false) String fromDate,
+                                  @RequestParam(value = "toDate", required = false) String toDate
+    ) throws BackendException {
         try {
-            return new ApiResponseDto(true, ((VocalService) this.service).getListPage(id, index, size, sortProperties, keywords, searchOp));
+            return new ApiResponseDto(true, ((VocalService) this.service).getListPage(regId, regGroupNm, select, index, size, sortProperties, keywords, searchOp, fromDate, toDate));
         } catch (Exception e) {
             throw new BackendException(this.name + " 페이지 목록 조회 중 오류발생", e);
         }

@@ -28,6 +28,9 @@ public class CreativeSongDto extends AdminDto {
     private String referenceSong;
     private String referenceArtist;
     private String createDate;
+    private String regNm;
+    private String regGroupNm;
+
     private List fileList;
 
     public CreativeSongDto() {}
@@ -48,6 +51,10 @@ public class CreativeSongDto extends AdminDto {
         this.referenceArtist = entity.getReferenceArtist();
         this.createDate = DateUtil.toFormat(entity.getCreateDate().getTime());
         this.regId = entity.getRegId();
+        if (entity.getRegUser() != null) {
+            this.regNm = entity.getRegUser().getName();
+            this.regGroupNm = entity.getRegUser().getGroup() != null ? entity.getRegUser().getGroup().getName() : null;
+        }
         this.regDate = DateUtil.toFormat(entity.getRegDate().getTime());
         this.modId = entity.getModId();
         this.modDate = DateUtil.toFormat(entity.getModDate().getTime());

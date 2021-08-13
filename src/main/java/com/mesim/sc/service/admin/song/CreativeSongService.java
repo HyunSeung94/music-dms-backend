@@ -57,6 +57,30 @@ public class CreativeSongService extends AdminService {
         super.init();
     }
 
+    public PageWrapper getListPage(String regId, String regGroupNm, String[] select, int index, int size, String[] sortProperties, String[] keywords, String searchOp, String fromDate, String toDate) throws BackendException {
+        Specification<Object> spec = AdminSpecs.regId(regId).and(AdminSpecs.regGroupNm(regGroupNm));
+
+        PageRequest pageRequest = this.getPageRequest(index, size, sortProperties);
+        Specification<Object> pageSpec = this.getSpec(select, keywords, searchOp, fromDate, toDate);
+
+        if (pageSpec != null) {
+            spec = spec.and(pageSpec);
+        }
+
+        Page<Object> page = this.repository.findAll(spec, pageRequest);
+        PageWrapper result = new PageWrapper(page);
+        final AtomicInteger seq = new AtomicInteger(1);
+
+        List<Object> list = page
+                .get()
+                .map(ExceptionHandler.wrap(entity -> this.toDto(entity, seq.getAndIncrement() + (result.getNumber() * size))))
+                .collect(Collectors.toList());
+
+        result.setList(list);
+
+        return result;
+    }
+
     public PageWrapper getListPage(String typeCd, int index, int size, String[] sortProperties, String[] keywords, String searchOp) throws BackendException {
         Specification<Object> spec = AdminSpecs.typeCd(typeCd);
         PageRequest pageRequest = super.getPageRequest(index, size, sortProperties);

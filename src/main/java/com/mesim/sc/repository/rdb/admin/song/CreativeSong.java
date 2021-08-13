@@ -3,6 +3,7 @@ package com.mesim.sc.repository.rdb.admin.song;
 import com.mesim.sc.repository.rdb.CrudEntity;
 
 import com.mesim.sc.repository.rdb.admin.consortium.Consortium;
+import com.mesim.sc.repository.rdb.admin.user.User;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -62,6 +63,10 @@ public class CreativeSong extends CrudEntity {
     @Column(name = "REFERENCE_ARTIST")
     private String referenceArtist;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @NotFound(action = NotFoundAction.IGNORE)
+    @JoinColumn(name = "REG_ID", referencedColumnName = "USER_ID", insertable = false, updatable = false)
+    private User regUser;
 
     @Builder
     public CreativeSong(

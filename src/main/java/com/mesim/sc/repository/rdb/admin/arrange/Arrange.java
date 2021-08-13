@@ -2,6 +2,7 @@ package com.mesim.sc.repository.rdb.admin.arrange;
 
 import com.mesim.sc.repository.rdb.CrudEntity;
 import com.mesim.sc.repository.rdb.admin.consortium.Consortium;
+import com.mesim.sc.repository.rdb.admin.user.User;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -32,23 +33,24 @@ public class Arrange extends CrudEntity {
     @Column(name = "ARRANGE_DATE")
     private Date arrangeDate;
 
-    @Column(name = "ARRANGER_INSPECTION")
-    private String arrangerInspection;
-
     @ManyToOne(fetch = FetchType.EAGER)
     @NotFound(action = NotFoundAction.IGNORE)
     @JoinColumn(name = "ARRANGER_CD", referencedColumnName = "CONSORTIUM_ID", insertable = false, updatable = false)
     private Consortium arranger;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @NotFound(action = NotFoundAction.IGNORE)
+    @JoinColumn(name = "REG_ID", referencedColumnName = "USER_ID", insertable = false, updatable = false)
+    private User regUser;
+
     @Builder
-    public Arrange(int id, String contentsCd, String arrangerCd, Date arrangeDate, String arrangerInspection, String regId, String modId) {
+    public Arrange(int id, String contentsCd, String arrangerCd, Date arrangeDate, String regId, String modId) {
         super(regId, modId);
 
         this.id = id;
         this.contentsCd = contentsCd;
         this.arrangerCd = arrangerCd;
         this.arrangeDate = arrangeDate;
-        this.arrangerInspection = arrangerInspection;
     }
 
 }

@@ -1,4 +1,4 @@
-package com.mesim.sc.service.Inspection;
+package com.mesim.sc.service.admin.Inspection;
 
 import com.mesim.sc.repository.rdb.CrudRepository;
 import com.mesim.sc.repository.rdb.admin.Inspection.Inspection;
@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -27,7 +26,7 @@ public class InspectionService extends AdminService {
 
     @PostConstruct
     public void init () {
-        this.searchFields = new String[]{"id", "inspection_id", "result_ins"};
+        this.searchFields = new String[]{"id", "inspectionId", "resultIns"};
 
         super.init();
     }

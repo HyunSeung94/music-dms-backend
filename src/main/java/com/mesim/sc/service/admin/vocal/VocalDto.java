@@ -30,6 +30,8 @@ public class VocalDto extends AdminDto {
     private String studio;
     private String micNm;
     private String audioIfNm;
+    private String regNm;
+    private String regGroupNm;
 
     private List fileList;
 
@@ -53,13 +55,16 @@ public class VocalDto extends AdminDto {
         }
         this.recordLength = entity.getRecordLength();
         this.recordDate = DateUtil.toFormat(entity.getRecordDate().getTime());
-        this.recordInspection = entity.getRecordInspection();
         this.vibe = entity.getVibe();
         this.studioCd = entity.getStudioCd();
         this.studio = entity.getStudio() != null ? entity.getStudio().getName() : null;
         this.micNm = entity.getMicNm();
         this.audioIfNm = entity.getAudioIfNm();
         this.regId = entity.getRegId();
+        if (entity.getRegUser() != null) {
+            this.regNm = entity.getRegUser().getName();
+            this.regGroupNm = entity.getRegUser().getGroup() != null ? entity.getRegUser().getGroup().getName() : null;
+        }
         this.regDate = DateUtil.toFormat(entity.getRegDate().getTime());
         this.modId = entity.getModId();
         this.modDate = DateUtil.toFormat(entity.getModDate().getTime());
@@ -73,7 +78,6 @@ public class VocalDto extends AdminDto {
                 .singerCd(this.singerCd)
                 .recordLength(this.recordLength)
                 .recordDate(this.recordDate.length() < 11 ? Date.valueOf(this.recordDate) : Date.valueOf(this.recordDate.substring(0,10)))
-                .recordInspection(this.recordInspection)
                 .vibe(this.vibe)
                 .studioCd(this.studioCd)
                 .micNm(this.micNm)

@@ -4,7 +4,7 @@ import com.mesim.sc.api.ApiResponseDto;
 import com.mesim.sc.api.rest.admin.AdminRestController;
 import com.mesim.sc.exception.BackendException;
 import com.mesim.sc.service.CrudService;
-import com.mesim.sc.service.Inspection.InspectionService;
+import com.mesim.sc.service.admin.Inspection.InspectionService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
