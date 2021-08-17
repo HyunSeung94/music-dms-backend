@@ -67,14 +67,16 @@ public class VocalService extends AdminService {
         super.init();
     }
 
-    public PageWrapper getListPage(String regId, String regGroupNm, String[] select, int index, int size, String[] sortProperties, String[] keywords, String searchOp, String fromDate, String toDate) throws BackendException {
+    public PageWrapper getListPage(String regId, String regGroupId, String[] select, int index, int size, String[] sortProperties, String[] keywords, String searchOp, String fromDate, String toDate) throws BackendException {
         Specification<Object> spec = null;
 
-        if (!regGroupNm.equals(CommonConstants.GROUP_ROOT_NM)) {
-            spec = AdminSpecs.regGroupNm(regGroupNm);
-
-            if (!regGroupNm.equals(CommonConstants.GROUP_CHILL_ROOT_NM) && !regGroupNm.equals(CommonConstants.GROUP_FKMP_ROOT_NM)) {
-                spec = spec == null ? AdminSpecs.regId(regId) : AdminSpecs.regId(regId).and(spec);
+        if (!regGroupId.equals(Integer.toString(CommonConstants.GROUP_ROOT_ID))) {
+            if (regGroupId.equals(Integer.toString(CommonConstants.GROUP_CHILL_ROOT_ID))) {
+                spec = AdminSpecs.regGroupId(CommonConstants.GROUP_CHILL_ID).or(AdminSpecs.regGroupId(CommonConstants.GROUP_CHILL_ROOT_ID));
+            } else if (regGroupId.equals(Integer.toString(CommonConstants.GROUP_FKMP_ROOT_ID))) {
+                spec = AdminSpecs.regGroupId(CommonConstants.GROUP_FKMP_ID).or(AdminSpecs.regGroupId(CommonConstants.GROUP_FKMP_ROOT_ID));
+            } else {
+                spec = AdminSpecs.regId(regId);
             }
         }
 

@@ -31,6 +31,7 @@ public class VocalDto extends AdminDto {
     private String micNm;
     private String audioIfNm;
     private String regNm;
+    private Integer regGroupId;
     private String regGroupNm;
 
     private List fileList;
@@ -63,6 +64,7 @@ public class VocalDto extends AdminDto {
         this.regId = entity.getRegId();
         if (entity.getRegUser() != null) {
             this.regNm = entity.getRegUser().getName();
+            this.regGroupId = entity.getRegUser().getGroup() != null ? entity.getRegUser().getGroup().getId() : null;
             this.regGroupNm = entity.getRegUser().getGroup() != null ? entity.getRegUser().getGroup().getName() : null;
         }
         this.regDate = DateUtil.toFormat(entity.getRegDate().getTime());

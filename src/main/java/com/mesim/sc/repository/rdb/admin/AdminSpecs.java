@@ -11,6 +11,14 @@ public class AdminSpecs {
         return (Specification<Object>) (root, query, cb) -> cb.equal(root.get("regId"), regId);
     }
 
+    public static Specification<Object> regGroupId(int regGroupId) {
+        return (root, query, cb) -> {
+            Join userJoin = root.join("regUser");
+            Join groupJoin = userJoin.join("group");
+            return cb.equal(groupJoin.get("id"), regGroupId);
+        };
+    }
+
     public static Specification<Object> regGroupNm(String regGroupNm) {
         return (root, query, cb) -> {
             Join userJoin = root.join("regUser");

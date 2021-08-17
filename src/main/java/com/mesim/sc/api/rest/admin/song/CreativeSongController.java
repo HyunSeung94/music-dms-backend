@@ -26,9 +26,9 @@ public class CreativeSongController extends AdminRestController {
         this.service = service;
     }
 
-    @RequestMapping(value = "listPage/{regId}/{regGroupNm}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value = "listPage/{regId}/{regGroupId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     public ApiResponseDto getList(@PathVariable(value = "regId") String regId,
-                                  @PathVariable(value = "regGroupNm") String regGroupNm,
+                                  @PathVariable(value = "regGroupId") String regGroupId,
                                   @RequestParam(value = "select", required = false) String[] select,
                                   @RequestParam(value = "index") int index,
                                   @RequestParam(value = "size") int size,
@@ -39,7 +39,7 @@ public class CreativeSongController extends AdminRestController {
                                   @RequestParam(value = "toDate", required = false) String toDate
     ) throws BackendException {
         try {
-            return new ApiResponseDto(true, ((CreativeSongService) this.service).getListPage(regId, regGroupNm, select, index, size, sortProperties, keywords, searchOp, fromDate, toDate));
+            return new ApiResponseDto(true, ((CreativeSongService) this.service).getListPage(regId, regGroupId, select, index, size, sortProperties, keywords, searchOp, fromDate, toDate));
         } catch (Exception e) {
             throw new BackendException(this.name + " 페이지 목록 조회 중 오류발생", e);
         }
