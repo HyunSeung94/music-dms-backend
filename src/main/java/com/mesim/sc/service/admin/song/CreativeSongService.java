@@ -52,8 +52,10 @@ public class CreativeSongService extends AdminService {
 
     @PostConstruct
     public void init () {
-        this.searchFields = new String[]{"id", "genre", "composer", "lyricist"};
         this.selectSortField = "songNm";
+        this.searchFields = new String[]{"id", "genre", "composerConsortiumNm", "lyricist"};
+
+        this.addRefEntity("composer", "consortiumNm");
 
         super.init();
     }

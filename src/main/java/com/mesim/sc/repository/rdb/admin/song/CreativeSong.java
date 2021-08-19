@@ -31,7 +31,7 @@ public class CreativeSong extends CrudEntity {
     @ManyToOne(fetch = FetchType.EAGER)
     @NotFound(action = NotFoundAction.IGNORE)
     @JoinColumn(name="COMPOSER_CD", referencedColumnName="CONSORTIUM_ID", insertable = false, updatable = false)
-    private Consortium consortium;
+    private Consortium composer;
 
     @Column(name = "GENRE")
     private String genre;
@@ -71,7 +71,7 @@ public class CreativeSong extends CrudEntity {
     @Builder
     public CreativeSong(
             String id,
-            Consortium consortium,
+            Consortium composer,
             String composerCd,
             String genre,
             String songNm,
@@ -89,7 +89,7 @@ public class CreativeSong extends CrudEntity {
         super(regId, modId);
 
         this.id = id;
-        this.consortium=consortium;
+        this.composer = composer;
         this.composerCd = composerCd;
         this.genre = genre;
         this.songNm = songNm;

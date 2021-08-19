@@ -55,7 +55,7 @@ public class VocalDto extends AdminDto {
             this.ageRange = entity.getSinger().getArgRange();
         }
         this.recordLength = entity.getRecordLength();
-        this.recordDate = DateUtil.toFormat(entity.getRecordDate().getTime());
+        this.recordDate = DateUtil.toFormat_yyyyMMdd(entity.getRecordDate().getTime());
         this.vibe = entity.getVibe();
         this.studioCd = entity.getStudioCd();
         this.studio = entity.getStudio() != null ? entity.getStudio().getName() : null;

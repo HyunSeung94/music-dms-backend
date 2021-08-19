@@ -888,8 +888,13 @@ public abstract class CrudService {
                     if (this.joinedSortField != null) {
                         Optional<String> optJoin = Arrays.stream(this.joinedSortField).filter(prop::startsWith).findFirst();
                         if (optJoin.isPresent()) {
-                            String joinField = optJoin.get();
-                            prop = String.join(JOIN_FIELD_DELIMITER, joinField, prop.replaceFirst(joinField, "").toLowerCase());
+                            String field = optJoin.get();
+
+                            String joinField = prop.replaceFirst(field, "");
+                            String firstChar = joinField.substring(0, 1).toLowerCase();
+                            joinField = firstChar + joinField.substring(1);
+
+                            prop = String.join(JOIN_FIELD_DELIMITER, field, joinField);
                         }
                     }
                     sortPropertyList.add(order.equals(SORT_DESC) ? Sort.Order.desc(prop) : Sort.Order.asc(prop));

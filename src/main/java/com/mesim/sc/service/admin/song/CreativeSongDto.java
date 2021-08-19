@@ -39,8 +39,8 @@ public class CreativeSongDto extends AdminDto {
     public CreativeSongDto(CreativeSong entity) {
         this.id = entity.getId();
         this.composerCd = entity.getComposerCd();
-        this.composerRole = entity.getConsortium() != null ? entity.getConsortium().getRole() : null;
-        this.composerNm = entity.getConsortium() != null ? entity.getConsortium().getConsortiumNm() : null;
+        this.composerRole = entity.getComposer() != null ? entity.getComposer().getRole() : null;
+        this.composerNm = entity.getComposer() != null ? entity.getComposer().getConsortiumNm() : null;
         this.genre = entity.getGenre();
         this.songNm = entity.getSongNm();
         this.songLength = entity.getSongLength();
@@ -50,7 +50,7 @@ public class CreativeSongDto extends AdminDto {
         this.instrumentCd = entity.getInstrumentCd();
         this.referenceSong = entity.getReferenceSong();
         this.referenceArtist = entity.getReferenceArtist();
-        this.createDate = DateUtil.toFormat(entity.getCreateDate().getTime());
+        this.createDate = DateUtil.toFormat_yyyyMMdd(entity.getCreateDate().getTime());
         this.regId = entity.getRegId();
         if (entity.getRegUser() != null) {
             this.regNm = entity.getRegUser().getName();
@@ -74,8 +74,8 @@ public class CreativeSongDto extends AdminDto {
                 .tempo(this.tempo)
                 .vibe(this.vibe)
                 .instrumentCd(this.instrumentCd)
-                .referenceSong(this.referenceSong)
-                .referenceArtist(this.referenceArtist)
+                .referenceSong(this.referenceSong != null ? this.referenceSong : "없음")
+                .referenceArtist(this.referenceArtist != null ? this.referenceArtist : "없음")
                 .createDate(this.createDate.length() < 11 ? Date.valueOf(this.createDate) : Date.valueOf(this.createDate.substring(0,10)))
                 .regId(this.regId)
                 .modId(this.modId == null ? this.regId : this.modId)
