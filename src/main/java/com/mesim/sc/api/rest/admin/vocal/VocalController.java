@@ -5,7 +5,6 @@ import com.mesim.sc.api.rest.admin.AdminRestController;
 import com.mesim.sc.exception.BackendException;
 import com.mesim.sc.service.CrudService;
 
-import com.mesim.sc.service.admin.song.CreativeSongService;
 import com.mesim.sc.service.admin.vocal.VocalService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +42,18 @@ public class VocalController extends AdminRestController {
             return new ApiResponseDto(true, ((VocalService) this.service).getListPage(regId, regGroupId, select, index, size, sortProperties, keywords, searchOp, fromDate, toDate));
         } catch (Exception e) {
             throw new BackendException(this.name + " 페이지 목록 조회 중 오류발생", e);
+        }
+    }
+
+    @RequestMapping(value = "listSelect/{regGroupId}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ApiResponseDto getListSelect(
+                                  @PathVariable(value = "regGroupId") String regGroupId,
+                                  @RequestParam(value = "select", required = false) String[] select
+    ) throws BackendException {
+        try {
+            return new ApiResponseDto(true, ((VocalService) this.service).getListSelect(regGroupId, select));
+        } catch (Exception e) {
+            throw new BackendException(this.name + " 선택 목록 조회 중 오류발생", e);
         }
     }
 

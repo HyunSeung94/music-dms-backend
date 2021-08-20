@@ -321,7 +321,6 @@ public class FileUtil {
 
             for (String file : fileList) {
 
-
                 // 디렉토리 안의 다른 디렉토리는 무시
                 if (new File(file).isDirectory()) {
                     continue;
@@ -330,7 +329,7 @@ public class FileUtil {
                 zos.setEncoding("UTF-8");
 
                 int index = file.lastIndexOf(System.getProperty("file.separator"));
-                String fileName= file.substring(index);
+                String fileName = file.substring(index + 1);
 
                 fis = new FileInputStream(file);
                 bis = new BufferedInputStream(fis, BUF_SIZE);

@@ -3,6 +3,7 @@ package com.mesim.sc.service.admin;
 import com.mesim.sc.exception.BackendException;
 import com.mesim.sc.repository.rdb.admin.Inspection.InspectionInfoRepository;
 import com.mesim.sc.repository.rdb.admin.Inspection.InspectionRepository;
+import com.mesim.sc.repository.rdb.admin.arrange.ArrangeRepository;
 import com.mesim.sc.repository.rdb.admin.authority.AuthorityMenuMapperRepository;
 import com.mesim.sc.repository.rdb.admin.authority.AuthorityRepository;
 import com.mesim.sc.repository.rdb.admin.code.CodeRepository;
@@ -18,6 +19,7 @@ import com.mesim.sc.repository.rdb.admin.vocal.VocalRepository;
 import com.mesim.sc.service.CrudService;
 import com.mesim.sc.service.admin.Inspection.InspectionDto;
 import com.mesim.sc.service.admin.Inspection.InspectionInfoDto;
+import com.mesim.sc.service.admin.arrange.ArrangeDto;
 import com.mesim.sc.service.admin.authority.AuthorityDto;
 import com.mesim.sc.service.admin.authority.AuthorityMenuMapperDto;
 import com.mesim.sc.service.admin.code.CodeDto;
@@ -60,6 +62,8 @@ public abstract class AdminService extends CrudService {
             clazz = CreativeSongDto.class;
         } else if (this.repository instanceof VocalRepository) {
             clazz = VocalDto.class;
+        } else if (this.repository instanceof ArrangeRepository) {
+            clazz = ArrangeDto.class;
         } else if (this.repository instanceof InspectionInfoRepository) {
             clazz = InspectionInfoDto.class;
         } else if (this.repository instanceof InspectionRepository) {

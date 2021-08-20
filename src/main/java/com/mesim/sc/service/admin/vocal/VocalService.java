@@ -11,11 +11,13 @@ import com.mesim.sc.repository.rdb.admin.vocal.VocalRepository;
 import com.mesim.sc.service.admin.AdminService;
 import com.mesim.sc.util.FileUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.MapUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -44,8 +46,6 @@ public class VocalService extends AdminService {
     @Value("${file.data.vocal.path}")
     private String vocalPath;
 
-
-
     @Value("${file.data.temp.path}")
     private String fileTempPath;
 
@@ -57,6 +57,7 @@ public class VocalService extends AdminService {
 
     @PostConstruct
     public void init () {
+        this.selectSortField = "id";
         this.searchFields = new String[]{"id", "songCd", "songSongNm", "singerCd", "singerConsortiumNm", "studioName"};
         this.joinedSortField = new String[]{"song", "singer", "studio"};
 
@@ -101,6 +102,36 @@ public class VocalService extends AdminService {
         return result;
     }
 
+    public List<Object> getListSelect(String regGroupId, String[] select) {
+        Specification<Object> spec = null;
+
+        if (!regGroupId.equals(Integer.toString(CommonConstants.GROUP_ROOT_ID))) {
+            if (regGroupId.equals(Integer.toString(CommonConstants.GROUP_CHILL_ROOT_ID))) {
+                spec = AdminSpecs.regGroupId(CommonConstants.GROUP_CHILL_ID).or(AdminSpecs.regGroupId(CommonConstants.GROUP_CHILL_ROOT_ID));
+            } else if (regGroupId.equals(Integer.toString(CommonConstants.GROUP_FKMP_ROOT_ID))) {
+                spec = AdminSpecs.regGroupId(CommonConstants.GROUP_FKMP_ID).or(AdminSpecs.regGroupId(CommonConstants.GROUP_FKMP_ROOT_ID));
+            }
+        }
+
+        Sort sort = Sort.by(this.selectSortDirection, this.selectSortField);
+
+        if (select != null && select.length > 0) {
+            spec = spec == null ? this.getSelectSpec(select) : spec.and(this.getSelectSpec(select));
+        }
+
+        if (this.root != null && MapUtils.isNotEmpty(this.root)) {
+            spec = spec == null ? this.getNotEqSpec(this.root) : Specification.where(this.getNotEqSpec(this.root)).and(spec);
+        }
+
+        List<Object> list = spec == null ? this.repository.findAll(sort) : this.repository.findAll(spec, sort);
+        final AtomicInteger i = new AtomicInteger(1);
+
+        return list
+                .stream()
+                .map(ExceptionHandler.wrap(entity -> this.toDto(entity, i.getAndIncrement())))
+                .collect(Collectors.toList());
+    }
+
     @Override
     public Object get(String id) {
         Optional<Object> optEntity = this.repository.findById(id);
@@ -109,7 +140,14 @@ public class VocalService extends AdminService {
             try {
                 VocalDto dto = (VocalDto) toDto(o, 0);
                 String filePath = FileUtil.makePath(this.fileBasePath, this.vocalPath, dto.getId());
-                List<String> fileNameList = FileUtil.fileList(filePath);
+
+                List<String> fileNameList = new ArrayList<>();
+                FileUtil.fileList(filePath).forEach(f -> {
+                    if (f.contains("vdata")) {
+                        fileNameList.add(f);
+                    }
+                });
+
                 dto.setFileList(fileNameList);
                 return dto;
             } catch (Exception e) {
@@ -148,17 +186,21 @@ public class VocalService extends AdminService {
 
         List<Map<String,Object>> list = (List<Map<String, Object>>) map.get("data");
 
-        for (int i = 0; i < list.size(); i++){
+        for (int i = 0; i < list.size(); i++) {
             String id = list.get(i).get("id").toString();
-            String filePath = FileUtil.makePath(this.fileBasePath, this.songPath, id);
+            String filePath = FileUtil.makePath(this.fileBasePath, this.vocalPath, id);
 
-            FileUtil.deleteFile(filePath);
+            FileUtil.fileList(filePath).forEach(f -> {
+                if (f.contains("vdata")) {
+                    FileUtil.deleteFile(filePath + System.getProperty("file.separator") + f);
+                }
+            });
         }
 
         return true;
     }
 
-    public byte[] fileDownload(String id,String fileName)  throws BackendException {
+    public byte[] fileDownload(String id, String fileName)  throws BackendException {
         String filePath = FileUtil.makePath(this.fileBasePath, this.vocalPath, id, fileName);
         return FileUtil.download(filePath);
     }
@@ -167,11 +209,11 @@ public class VocalService extends AdminService {
 
         Optional<Object> optEntity = this.repository.findById(id);
 
-                optEntity.map(o -> {
+        return optEntity.map(o -> {
             try {
                 VocalDto dto = (VocalDto) toDto(o, 0);
 
-                String songFilePath = FileUtil.makePath(this.fileBasePath, this.songPath,dto.getSongCd() );
+                String songFilePath = FileUtil.makePath(this.fileBasePath, this.songPath, dto.getSongCd());
                 String vocalFilePath = FileUtil.makePath(this.fileBasePath, this.vocalPath, id);
 
                 List<String> fileList = new ArrayList<>();
@@ -179,11 +221,13 @@ public class VocalService extends AdminService {
                     fileList.add(songFilePath +System.getProperty("file.separator")+ f);
                 });
                 FileUtil.fileList(vocalFilePath).forEach(f -> {
-                    fileList.add(vocalFilePath +System.getProperty("file.separator")+ f);
+                    if (f.contains("vdata")) {
+                        fileList.add(vocalFilePath + System.getProperty("file.separator") + f);
+                    }
                 });
 
                 String outPath = FileUtil.makePath(this.fileBasePath, this.vocalPath, id);
-                File zipFile = FileUtil.compress(outPath,fileList);
+                File zipFile = FileUtil.compress(outPath, fileList);
                 String zipFilePath = FileUtil.makePath(this.fileBasePath, this.vocalPath, id, zipFile.getName());
                 byte[] zipFileByte = FileUtil.download(zipFilePath);
 
@@ -196,12 +240,10 @@ public class VocalService extends AdminService {
                 throw new RuntimeException(e);
             }
         }).orElse(null);
-
-        return null;
     }
 
-    public byte[] getFiletoByte(String songCd, String fileName) throws BackendException {
-        String soundPath = FileUtil.makePath(this.fileBasePath, this.vocalPath, songCd, fileName);
+    public byte[] getFiletoByte(String contentsCd, String fileName) throws BackendException {
+        String soundPath = FileUtil.makePath(this.fileBasePath, this.vocalPath, contentsCd, fileName);
         File soundFile = new File(soundPath);
 
         try {

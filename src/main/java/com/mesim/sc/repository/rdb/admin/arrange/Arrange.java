@@ -22,6 +22,8 @@ public class Arrange extends CrudEntity {
 
     @Id
     @Column(name = "ARRANGE_ID")
+    @SequenceGenerator(name = "COL_GEN_ARRANGE_ID_SEQ", sequenceName = "ARRANGE_ID_SEQ", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "COL_GEN_ARRANGE_ID_SEQ")
     private int id;
 
     @Column(name = "CONTENTS_CD")

@@ -32,7 +32,7 @@ public class ArrangeDto extends AdminDto {
             this.arrangerNm = entity.getArranger().getConsortiumNm();
             this.arrangerRole = entity.getArranger().getRole();
         }
-        this.arrangeDate = DateUtil.toFormat(entity.getArrangeDate().getTime());
+        this.arrangeDate = DateUtil.toFormat_yyyyMMdd(entity.getArrangeDate().getTime());
         this.regId = entity.getRegId();
         if (entity.getRegUser() != null) {
             this.regNm = entity.getRegUser().getName();

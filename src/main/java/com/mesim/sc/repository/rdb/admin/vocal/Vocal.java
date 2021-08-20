@@ -68,11 +68,6 @@ public class Vocal extends CrudEntity {
     })
     private Code studio;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @NotFound(action = NotFoundAction.IGNORE)
-    @JoinColumn(name = "REG_ID", referencedColumnName = "USER_ID", insertable = false, updatable = false)
-    private User regUser;
-
     @Builder
     public Vocal(String id, String songCd, String singerCd, String recordLength, Date recordDate, String vibe, String studioCd, String micNm, String audioIfNm, String regId, String modId) {
         super(regId, modId);
