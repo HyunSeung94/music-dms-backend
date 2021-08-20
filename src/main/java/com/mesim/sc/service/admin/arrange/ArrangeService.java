@@ -8,6 +8,7 @@ import com.mesim.sc.repository.rdb.CrudRepository;
 import com.mesim.sc.repository.rdb.admin.AdminSpecs;
 import com.mesim.sc.repository.rdb.admin.song.CreativeSong;
 import com.mesim.sc.repository.rdb.admin.song.CreativeSongRepository;
+import com.mesim.sc.repository.rdb.admin.vocal.Vocal;
 import com.mesim.sc.repository.rdb.admin.vocal.VocalRepository;
 import com.mesim.sc.service.admin.AdminService;
 import com.mesim.sc.service.admin.vocal.VocalDto;
@@ -178,13 +179,11 @@ public class ArrangeService extends AdminService {
 
     public byte[] fileAllDownload(String id) throws BackendException {
 
-        Optional<Object> optEntity = Optional.of(this.vocalRepository.findById(id));
+        Optional<Vocal> optEntity = this.vocalRepository.findById(id);
 
         return optEntity.map(o -> {
             try {
-                VocalDto dto = (VocalDto) toDto(o, 0);
-
-                String songFilePath = FileUtil.makePath(this.fileBasePath, this.songPath, dto.getSongCd());
+                String songFilePath = FileUtil.makePath(this.fileBasePath, this.songPath, o.getSongCd());
                 String vocalFilePath = FileUtil.makePath(this.fileBasePath, this.vocalPath, id);
 
                 List<String> fileList = new ArrayList<>();
