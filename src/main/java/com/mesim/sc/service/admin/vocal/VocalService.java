@@ -156,12 +156,12 @@ public class VocalService extends AdminService {
         }).orElse(null);
     }
 
-    @Override
-    public Object add(Object data, MultipartFile[] files) throws BackendException {
+
+    public Object add(Object data, MultipartFile[] files,String userId) throws BackendException {
         VocalDto savedVocalDto = (VocalDto) this.save(data);
 
         String filePath = FileUtil.makePath(this.fileBasePath, this.vocalPath, savedVocalDto.getId());
-        String tempPath = FileUtil.makePath(this.fileBasePath, this.fileTempPath);
+        String tempPath = FileUtil.makePath(this.fileBasePath, this.fileTempPath, userId);
 
         try {
             for (MultipartFile file : files) {
@@ -192,7 +192,8 @@ public class VocalService extends AdminService {
 
             FileUtil.fileList(filePath).forEach(f -> {
                 if (f.contains("vdata")) {
-                    FileUtil.deleteFile(filePath + System.getProperty("file.separator") + f);
+//                    FileUtil.deleteFile(filePath + System.getProperty("file.separator") + f);
+                    FileUtil.deleteFile(filePath + System.getProperty("file.separator"));
                 }
             });
         }

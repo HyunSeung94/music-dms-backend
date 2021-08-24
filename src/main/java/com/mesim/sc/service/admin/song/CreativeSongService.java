@@ -140,12 +140,12 @@ public class CreativeSongService extends AdminService {
         }).orElse(null);
     }
 
-    @Override
-    public Object add(Object data, MultipartFile[] files) throws BackendException {
+
+    public Object add(Object data, MultipartFile[] files,String userId) throws BackendException {
         CreativeSongDto savedSongDto = (CreativeSongDto) this.save(data);
 
         String filePath = FileUtil.makePath(this.fileBasePath, this.songPath, savedSongDto.getId());
-        String tempPath = FileUtil.makePath(this.fileBasePath, this.fileTempPath);
+        String tempPath = FileUtil.makePath(this.fileBasePath, this.fileTempPath, userId);
 
         try {
             for (MultipartFile file : files) {

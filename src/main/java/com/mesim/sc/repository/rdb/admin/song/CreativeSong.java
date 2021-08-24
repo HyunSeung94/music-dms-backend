@@ -63,6 +63,9 @@ public class CreativeSong extends CrudEntity {
     @Column(name = "REFERENCE_ARTIST")
     private String referenceArtist;
 
+    @Column(name = "IMPORT_YN")
+    private String importYn;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @NotFound(action = NotFoundAction.IGNORE)
     @JoinColumn(name = "REG_ID", referencedColumnName = "USER_ID", insertable = false, updatable = false)
@@ -83,6 +86,7 @@ public class CreativeSong extends CrudEntity {
             String referenceSong,
             String referenceArtist,
             Date createDate,
+            String importYn,
             String regId,
             String modId
     ) {
@@ -101,6 +105,7 @@ public class CreativeSong extends CrudEntity {
         this.createDate = createDate;
         this.referenceSong = referenceSong;
         this.referenceArtist = referenceArtist;
+        this.importYn = importYn;
     }
 
 

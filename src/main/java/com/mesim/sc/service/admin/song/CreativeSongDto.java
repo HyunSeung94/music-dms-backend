@@ -28,6 +28,7 @@ public class CreativeSongDto extends AdminDto {
     private String referenceSong;
     private String referenceArtist;
     private String createDate;
+    private String importYn;
     private String regNm;
     private Integer regGroupId;
     private String regGroupNm;
@@ -51,6 +52,7 @@ public class CreativeSongDto extends AdminDto {
         this.referenceSong = entity.getReferenceSong();
         this.referenceArtist = entity.getReferenceArtist();
         this.createDate = DateUtil.toFormat_yyyyMMdd(entity.getCreateDate().getTime());
+        this.importYn = entity.getImportYn();
         this.regId = entity.getRegId();
         if (entity.getRegUser() != null) {
             this.regNm = entity.getRegUser().getName();
@@ -77,6 +79,7 @@ public class CreativeSongDto extends AdminDto {
                 .referenceSong(this.referenceSong != null ? this.referenceSong : "없음")
                 .referenceArtist(this.referenceArtist != null ? this.referenceArtist : "없음")
                 .createDate(this.createDate.length() < 11 ? Date.valueOf(this.createDate) : Date.valueOf(this.createDate.substring(0,10)))
+                .importYn(this.importYn != null ? this.importYn : "N")
                 .regId(this.regId)
                 .modId(this.modId == null ? this.regId : this.modId)
                 .build();

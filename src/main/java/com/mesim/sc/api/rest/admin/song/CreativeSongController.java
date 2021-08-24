@@ -7,6 +7,7 @@ import com.mesim.sc.service.CrudService;
 
 import com.mesim.sc.service.admin.song.CreativeSongService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
@@ -78,10 +79,12 @@ public class CreativeSongController extends AdminRestController {
     @RequestMapping(value = "upload", method = RequestMethod.POST, produces = MediaType.ALL_VALUE)
     public ApiResponseDto upload(
             @RequestPart(value = "data") Object dto,
-            @RequestPart(value = "files") MultipartFile[] files
+            @RequestPart(value = "files") MultipartFile[] files,
+            Authentication authentication
     ) throws BackendException {
+        String userId = authentication.getPrincipal().toString();
         try {
-            return new ApiResponseDto(true, ((CreativeSongService) service).add(dto, files));
+            return new ApiResponseDto(true, ((CreativeSongService) service).add(dto, files,userId));
         } catch (Exception e) {
             throw new BackendException(this.name + " 등록 중 오류발생", e);
         }

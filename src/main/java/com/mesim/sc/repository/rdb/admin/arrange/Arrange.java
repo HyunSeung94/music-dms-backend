@@ -45,14 +45,18 @@ public class Arrange extends CrudEntity {
     @JoinColumn(name = "REG_ID", referencedColumnName = "USER_ID", insertable = false, updatable = false)
     private User regUser;
 
+    @Column(name = "IMPORT_YN")
+    private String importYn;
+
     @Builder
-    public Arrange(int id, String contentsCd, String arrangerCd, Date arrangeDate, String regId, String modId) {
+    public Arrange(int id, String contentsCd, String arrangerCd, Date arrangeDate,String importYn, String regId, String modId) {
         super(regId, modId);
 
         this.id = id;
         this.contentsCd = contentsCd;
         this.arrangerCd = arrangerCd;
         this.arrangeDate = arrangeDate;
+        this.importYn = importYn;
     }
 
 }

@@ -3,9 +3,12 @@ package com.mesim.sc.api.rest.file;
 import com.mesim.sc.api.ApiResponseDto;
 import com.mesim.sc.exception.BackendException;
 import com.mesim.sc.util.FileUtil;
+import com.mesim.sc.service.auth.AuthService;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItem;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -16,12 +19,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Base64;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
 @RestController
 @RequestMapping("api/file")
 public class FileUploadController {
+
+    @Autowired
+    private AuthService authService;
 
     @Value("${file.data.base.path}")
     private String fileBasePath;
@@ -39,18 +46,21 @@ public class FileUploadController {
     }
 
     @RequestMapping(value = "upload", method = RequestMethod.POST, produces = MediaType.ALL_VALUE)
-    public ApiResponseDto upload(@RequestPart(value = "file") MultipartFile[] files) throws BackendException {
+    public ApiResponseDto upload(@RequestPart(value = "file") MultipartFile[] files, Authentication authentication) throws BackendException {
+        HashMap<String, Object> resDataObj = new HashMap<>();
         try {
-            return uploadTempFile(files);
+            String userId = authentication.getPrincipal().toString();
+//            resDataObj.put("user", authService.getUser(authentication));
+            return uploadTempFile(files,userId);
 //            return null;
         } catch (Exception e) {
             throw new BackendException("파일 업로드 중 오류발생", e);
         }
     }
 
-    public ApiResponseDto uploadTempFile(MultipartFile[] files) throws IOException{
+    public ApiResponseDto uploadTempFile(MultipartFile[] files,String userId) throws IOException{
 
-        String filePath = FileUtil.makePath(this.fileBasePath, this.fileTempPath);
+        String filePath = FileUtil.makePath(this.fileBasePath, this.fileTempPath,userId);
 
         for (MultipartFile file : files) {
             System.out.println(file.getOriginalFilename());

@@ -7,6 +7,7 @@ import com.mesim.sc.util.FileUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -349,9 +350,10 @@ public abstract class CrudRestController {
      * @return 성공/실패 여부
      */
     @RequestMapping(value = "deleteTempFile", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ApiResponseDto deleteTempFile() throws BackendException {
+    public ApiResponseDto deleteTempFile(Authentication authentication) throws BackendException {
         try {
-            return new ApiResponseDto(true, FileUtil.deleteFile(FileUtil.makePath(fileBasePath, tempPath)));
+            String userId = authentication.getPrincipal().toString();
+            return new ApiResponseDto(true, FileUtil.deleteFile(FileUtil.makePath(fileBasePath, tempPath,userId)));
         } catch (Exception e) {
             throw new BackendException(this.name + " 다운로드 중 오류발생", e);
         }

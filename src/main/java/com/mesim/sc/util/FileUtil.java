@@ -147,7 +147,7 @@ public class FileUtil {
     }
 
     public static String makePath(String... paths) {
-        log.info(String.join(System.getProperty("file.separator"), paths));
+//        log.info(String.join(System.getProperty("file.separator"), paths));
         return String.join(System.getProperty("file.separator"), paths);
 
     }
