@@ -9,6 +9,7 @@ import com.mesim.sc.repository.rdb.admin.AdminSpecs;
 import com.mesim.sc.repository.rdb.admin.song.CreativeSong;
 import com.mesim.sc.repository.rdb.admin.song.CreativeSongRepository;
 import com.mesim.sc.service.admin.AdminService;
+import com.mesim.sc.util.CSV;
 import com.mesim.sc.util.FileUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +23,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +47,9 @@ public class CreativeSongService extends AdminService {
 
     @Value("${file.data.temp.path}")
     private String fileTempPath;
+
+    @Value("${file.data.csv.path}")
+    private String csvPath;
 
     @Autowired
     @Qualifier("creativeSongRepository")
@@ -215,6 +222,53 @@ public class CreativeSongService extends AdminService {
         } catch (Exception e) {
             throw new BackendException("사운드 읽는 중 오류발생", e);
         }
+    }
+
+    @Override
+    public void importCsv(MultipartFile[] multipartFile, String userId) throws IOException, BackendException {
+        String fileName= multipartFile[0].getOriginalFilename();
+        String ext = FileUtil.getExt(fileName);
+        if (!ext.equals("csv")) {
+            throw new BackendException("지원하지 않는 파일 형식입니다.");
+        }
+
+        String path = FileUtil.makePath(fileBasePath,csvPath,userId);
+
+        File file = new File(path + System.getProperty("file.separator") + fileName);
+
+
+        try (InputStream in = new FileInputStream(file);) {
+            CSV csv = new CSV(true, ',', in );
+            List<CreativeSong> songList = new ArrayList < > ();
+            List < String > fieldNames = null;
+            if (csv.hasNext()) fieldNames = new ArrayList < > (csv.next());
+
+            while (csv.hasNext()) {
+                List < String > x = csv.next();
+                CreativeSong creativeSong = CreativeSong.builder()
+                        .id(x.get(0))
+                        .composerCd(x.get(1))
+                        .genre(x.get(2))
+                        .songNm(x.get(3))
+                        .songLength(x.get(4))
+                        .tonality(x.get(5))
+                        .tempo(x.get(6))
+                        .vibe(x.get(7))
+                        .instrumentCd(x.get(8))
+                        .referenceSong(x.get(9))
+                        .referenceArtist(x.get(10))
+                        .createDate(Date.valueOf(x.get(11)))
+                        .importYn("Y")
+                        .regId(userId)
+                        .modId(userId)
+                        .build();
+
+                songList.add(creativeSong);
+
+            }
+            this.repository.saveAll(songList);
+        }
+//        file.delete();
     }
 
 }

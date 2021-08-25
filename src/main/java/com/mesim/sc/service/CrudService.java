@@ -7,6 +7,8 @@ import com.mesim.sc.exception.BackendException;
 import com.mesim.sc.exception.ExceptionHandler;
 import com.mesim.sc.repository.rdb.CrudRepository;
 import com.mesim.sc.repository.PageWrapper;
+import com.mesim.sc.repository.rdb.admin.song.CreativeSong;
+import com.mesim.sc.util.CSV;
 import com.mesim.sc.util.DataTypeUtil;
 import com.mesim.sc.util.DateUtil;
 import com.mesim.sc.util.FileUtil;
@@ -34,6 +36,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.sql.Date;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -49,6 +52,13 @@ public abstract class CrudService {
 
     @Value("${file.data.base.path}")
     private String fileBasePath;
+
+    @Value("${file.data.temp.path}")
+    private String tempPath;
+
+    @Value("${file.data.csv.path}")
+    private String csvPath;
+
 
     protected static final String SELECT_FIELD_SPLITTER = ";";
     protected static final String JOIN_FIELD_DELIMITER = ".";
@@ -1583,4 +1593,37 @@ public abstract class CrudService {
         return list;
     }
 
+    /**
+     * 각 서비스에서 오버라이딩 해야한다.
+     * @param multipartFile
+     * @param userId
+     * @throws IOException
+     * @throws BackendException
+     */
+    public void importCsv(MultipartFile[] multipartFile, String userId) throws IOException, BackendException {
+        String fileName= multipartFile[0].getOriginalFilename();
+        String ext = FileUtil.getExt(fileName);
+        if (!ext.equals("csv")) {
+            throw new BackendException("지원하지 않는 파일 형식입니다.");
+        }
+
+        String path = FileUtil.makePath(fileBasePath,csvPath,userId);
+        File file = new File(path + System.getProperty("file.separator") + fileName);
+
+        try (InputStream in = new FileInputStream(file);) {
+            CSV csv = new CSV(true, ',', in );
+            List < String > fieldNames = null;
+            if (csv.hasNext()) fieldNames = new ArrayList < > (csv.next());
+            List < Map < String, String >> list = new ArrayList < > ();
+            while (csv.hasNext()) {
+                List < String > x = csv.next();
+                Map < String, String > obj = new LinkedHashMap < > ();
+                for (int i = 0; i < fieldNames.size(); i++) {
+                    obj.put(fieldNames.get(i), x.get(i));
+                }
+                list.add(obj);
+            }
+            log.info(list.toString());
+        }
+    }
 }

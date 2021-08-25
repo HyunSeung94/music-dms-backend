@@ -23,11 +23,9 @@ public abstract class CrudRestController {
     @Value("${file.data.temp.path}")
     private String tempPath;
 
-    @Value("${csv.temp.file}")
-    private String csvFileName;
+    @Value("${file.data.csv.path}")
+    private String csvPath;
 
-    @Value("${file.data.song.path}")
-    private String songPath;
 
     protected String name;
 
@@ -360,6 +358,21 @@ public abstract class CrudRestController {
     }
 
     /**
+     * 파일 업로드 Temp 파일 삭제
+     *
+     * @return 성공/실패 여부
+     */
+    @RequestMapping(value = "deleteCsvFile", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ApiResponseDto deleteCsvFile(Authentication authentication) throws BackendException {
+        try {
+            String userId = authentication.getPrincipal().toString();
+            return new ApiResponseDto(true, FileUtil.deleteFile(FileUtil.makePath(fileBasePath, csvPath,userId)));
+        } catch (Exception e) {
+            throw new BackendException(this.name + " 다운로드 중 오류발생", e);
+        }
+    }
+
+    /**
      * 미리보기
      *
      * @param id 미리보기할 데이터 ID
@@ -537,6 +550,24 @@ public abstract class CrudRestController {
             return new ApiResponseDto(true, this.service.getSelectGroup(select, where, table));
         } catch (Exception e) {
             throw new BackendException(this.name + " 쿼리 생성 조회 중 오류발생", e);
+        }
+    }
+
+    /**
+     * 파일 업로드
+     *
+     * @param files 파일 목록
+     * @return 성공/실패 여부
+     */
+    @RequestMapping(value = "importCsv", method = RequestMethod.POST, produces = MediaType.ALL_VALUE)
+    public ApiResponseDto importCsv(@RequestPart(value = "file") MultipartFile[] files,
+                                        Authentication authentication ) throws BackendException {
+        try {
+            String userId = authentication.getPrincipal().toString();
+            this.service.importCsv(files, userId);
+            return new ApiResponseDto(true);
+        } catch (Exception e) {
+            throw new BackendException(this.name + " 가져오기 중 오류발생", e);
         }
     }
 

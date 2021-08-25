@@ -36,6 +36,8 @@ public class FileUploadController {
     @Value("${file.data.temp.path}")
     private String fileTempPath;
 
+    @Value("${file.data.csv.path}")
+    private String csvPath;
 
     // Cache 타입
     private static class Node {
@@ -47,12 +49,19 @@ public class FileUploadController {
 
     @RequestMapping(value = "upload", method = RequestMethod.POST, produces = MediaType.ALL_VALUE)
     public ApiResponseDto upload(@RequestPart(value = "file") MultipartFile[] files, Authentication authentication) throws BackendException {
-        HashMap<String, Object> resDataObj = new HashMap<>();
         try {
             String userId = authentication.getPrincipal().toString();
-//            resDataObj.put("user", authService.getUser(authentication));
             return uploadTempFile(files,userId);
-//            return null;
+        } catch (Exception e) {
+            throw new BackendException("파일 업로드 중 오류발생", e);
+        }
+    }
+
+    @RequestMapping(value = "uploadCsv", method = RequestMethod.POST, produces = MediaType.ALL_VALUE)
+    public ApiResponseDto uploadCsv(@RequestPart(value = "file") MultipartFile[] files, Authentication authentication) throws BackendException {
+        try {
+            String userId = authentication.getPrincipal().toString();
+            return uploadCsvFile(files,userId);
         } catch (Exception e) {
             throw new BackendException("파일 업로드 중 오류발생", e);
         }
@@ -63,7 +72,17 @@ public class FileUploadController {
         String filePath = FileUtil.makePath(this.fileBasePath, this.fileTempPath,userId);
 
         for (MultipartFile file : files) {
-            System.out.println(file.getOriginalFilename());
+            FileUtil.upload(filePath, file.getOriginalFilename(), file);
+        }
+
+        return new ApiResponseDto(true);
+    }
+
+    public ApiResponseDto uploadCsvFile(MultipartFile[] files,String userId) throws IOException{
+
+        String filePath = FileUtil.makePath(this.fileBasePath, this.csvPath, userId);
+
+        for (MultipartFile file : files) {
             FileUtil.upload(filePath, file.getOriginalFilename(), file);
         }
 
