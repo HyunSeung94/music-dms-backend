@@ -16,7 +16,7 @@ public class ConsortiumDto extends AdminDto {
     private Integer dance;
     private Integer agitation;
     private String role;
-    protected String argRange;
+    protected String ageRange;
     protected String toneColor;
     protected String gender;
     protected String level;
@@ -31,7 +31,7 @@ public class ConsortiumDto extends AdminDto {
         this.dance = entity.getDance();
         this.agitation = entity.getAgitation();
         this.role = entity.getRole();
-        this.argRange = entity.getArgRange();
+        this.ageRange = entity.getAgeRange();
         this.toneColor = entity.getToneColor();
         this.gender = entity.getGender();
         this.level = entity.getLevel();
@@ -47,7 +47,7 @@ public class ConsortiumDto extends AdminDto {
                 .dance(this.dance)
                 .agitation(this.agitation)
                 .role(this.role)
-                .argRange(this.argRange)
+                .ageRange(this.ageRange)
                 .toneColor(this.toneColor)
                 .gender(this.gender)
                 .level(this.level)

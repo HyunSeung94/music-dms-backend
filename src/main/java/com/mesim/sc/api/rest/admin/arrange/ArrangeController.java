@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -55,10 +56,12 @@ public class ArrangeController extends AdminRestController {
     @RequestMapping(value = "upload", method = RequestMethod.POST, produces = MediaType.ALL_VALUE)
     public ApiResponseDto upload(
             @RequestPart(value = "data") Object dto,
-            @RequestPart(value = "files") MultipartFile[] files
+            @RequestPart(value = "files") MultipartFile[] files,
+            Authentication authentication
     ) throws BackendException {
         try {
-            return new ApiResponseDto(true, ((ArrangeService) service).add(dto, files));
+            String userId = authentication.getPrincipal().toString();
+            return new ApiResponseDto(true, ((ArrangeService) service).add(dto, files,userId));
         } catch (Exception e) {
             throw new BackendException(this.name + " 등록 중 오류발생", e);
         }

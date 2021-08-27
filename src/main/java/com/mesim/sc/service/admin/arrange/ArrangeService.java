@@ -6,12 +6,14 @@ import com.mesim.sc.exception.ExceptionHandler;
 import com.mesim.sc.repository.PageWrapper;
 import com.mesim.sc.repository.rdb.CrudRepository;
 import com.mesim.sc.repository.rdb.admin.AdminSpecs;
+import com.mesim.sc.repository.rdb.admin.arrange.Arrange;
 import com.mesim.sc.repository.rdb.admin.song.CreativeSong;
 import com.mesim.sc.repository.rdb.admin.song.CreativeSongRepository;
 import com.mesim.sc.repository.rdb.admin.vocal.Vocal;
 import com.mesim.sc.repository.rdb.admin.vocal.VocalRepository;
 import com.mesim.sc.service.admin.AdminService;
 import com.mesim.sc.service.admin.vocal.VocalDto;
+import com.mesim.sc.util.CSV;
 import com.mesim.sc.util.FileUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +27,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +54,10 @@ public class ArrangeService extends AdminService {
 
     @Value("${file.data.temp.path}")
     private String fileTempPath;
+
+    @Value("${file.data.csv.path}")
+    private String csvPath;
+
 
     @Autowired
     private VocalRepository vocalRepository;
@@ -128,12 +137,12 @@ public class ArrangeService extends AdminService {
         }).orElse(null);
     }
 
-    @Override
-    public Object add(Object data, MultipartFile[] files) throws BackendException {
+
+    public Object add(Object data, MultipartFile[] files,String userId) throws BackendException {
         ArrangeDto savedArrangeDto = (ArrangeDto) this.save(data);
 
         String filePath = FileUtil.makePath(this.fileBasePath, this.vocalPath, savedArrangeDto.getContentsCd());
-        String tempPath = FileUtil.makePath(this.fileBasePath, this.fileTempPath);
+        String tempPath = FileUtil.makePath(this.fileBasePath, this.fileTempPath, userId);
 
         try {
             for (MultipartFile file : files) {
@@ -164,7 +173,7 @@ public class ArrangeService extends AdminService {
 
             FileUtil.fileList(filePath).forEach(f -> {
                 if (!f.contains("vdata")) {
-                    FileUtil.deleteFile(filePath + System.getProperty("file.separator") + f);
+                    FileUtil.deleteFile(filePath + System.getProperty("file.separator")+f);
                 }
             });
         }
@@ -222,6 +231,43 @@ public class ArrangeService extends AdminService {
             }
         } catch (Exception e) {
             throw new BackendException("사운드 읽는 중 오류발생", e);
+        }
+    }
+
+    @Override
+    public void importCsv(MultipartFile[] multipartFile, String userId) throws IOException, BackendException {
+        String fileName= multipartFile[0].getOriginalFilename();
+        String ext = FileUtil.getExt(fileName);
+        if (!ext.equals("csv")) {
+            throw new BackendException("지원하지 않는 파일 형식입니다.");
+        }
+
+        String path = FileUtil.makePath(fileBasePath,csvPath,userId);
+
+        File file = new File(path + System.getProperty("file.separator") + fileName);
+
+
+        try (InputStream in = new FileInputStream(file);) {
+            CSV csv = new CSV(true, ',', in );
+            List<Arrange> arrangeList = new ArrayList < > ();
+            List < String > fieldNames = null;
+            if (csv.hasNext()) fieldNames = new ArrayList < > (csv.next());
+
+            while (csv.hasNext()) {
+                List < String > x = csv.next();
+                Arrange arrange = Arrange.builder()
+                        .contentsCd(x.get(0))
+                        .arrangerCd(x.get(1))
+                        .arrangeDate(Date.valueOf(x.get(2)))
+                        .importYn("Y")
+                        .regId(userId)
+                        .modId(userId)
+                        .build();
+
+                arrangeList.add(arrange);
+
+            }
+            this.repository.saveAll(arrangeList);
         }
     }
 

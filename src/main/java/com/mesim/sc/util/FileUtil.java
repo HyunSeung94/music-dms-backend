@@ -218,19 +218,23 @@ public class FileUtil {
 
         if(deleteFolder.exists()){
             File[] deleteFolderList = deleteFolder.listFiles();
-
-            for (int i = 0; i < deleteFolderList.length; i++) {
-                if(deleteFolderList[i].isFile()) {
+            if(deleteFolderList != null){
+                for (int i = 0; i < deleteFolderList.length; i++) {
+                    if(deleteFolderList[i].isFile()) {
+                        deleteFolderList[i].delete();
+                    }else {
+                        deleteFile(deleteFolderList[i].getPath());
+                    }
                     deleteFolderList[i].delete();
-                }else {
-                    deleteFile(deleteFolderList[i].getPath());
                 }
-                deleteFolderList[i].delete();
+                deleteFolder.delete();
+            }else{
+                deleteFolder.delete();
             }
-            deleteFolder.delete();
-            return deleteFolderList.toString() ;
+
+            return path;
         }
-        return deleteFolder.toString();
+        return path;
     }
 
     public static File compress(String outPath, String filePath, List<String> fileList) throws BackendException {

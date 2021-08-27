@@ -82,8 +82,8 @@ public class CreativeSongController extends AdminRestController {
             @RequestPart(value = "files") MultipartFile[] files,
             Authentication authentication
     ) throws BackendException {
-        String userId = authentication.getPrincipal().toString();
         try {
+            String userId = authentication.getPrincipal().toString();
             return new ApiResponseDto(true, ((CreativeSongService) service).add(dto, files,userId));
         } catch (Exception e) {
             throw new BackendException(this.name + " 등록 중 오류발생", e);

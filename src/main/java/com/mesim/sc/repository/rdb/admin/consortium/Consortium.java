@@ -34,7 +34,7 @@ public class Consortium {
     private String role;
 
     @Column(name = "ARG_RANGE")
-    protected String argRange;
+    protected String ageRange;
 
     @Column(name = "TONE_COLOR")
     protected String toneColor;
@@ -54,7 +54,7 @@ public class Consortium {
             Integer dance,
             Integer agitation,
             String role,
-            String argRange,
+            String ageRange,
             String toneColor,
             String gender,
             String level
@@ -66,7 +66,7 @@ public class Consortium {
         this.dance = dance;
         this.agitation = agitation;
         this.role = role;
-        this.argRange = argRange;
+        this.ageRange = ageRange;
         this.toneColor = toneColor;
         this.gender = gender;
         this.level = level;

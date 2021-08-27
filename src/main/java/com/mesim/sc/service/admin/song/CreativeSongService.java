@@ -245,6 +245,9 @@ public class CreativeSongService extends AdminService {
 
             while (csv.hasNext()) {
                 List < String > x = csv.next();
+                if(x.get(0).equals("")){
+                    break;
+                }
                 CreativeSong creativeSong = CreativeSong.builder()
                         .id(x.get(0))
                         .composerCd(x.get(1))

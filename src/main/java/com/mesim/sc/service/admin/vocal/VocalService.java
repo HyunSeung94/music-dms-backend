@@ -201,8 +201,7 @@ public class VocalService extends AdminService {
 
             FileUtil.fileList(filePath).forEach(f -> {
                 if (f.contains("vdata")) {
-//                    FileUtil.deleteFile(filePath + System.getProperty("file.separator") + f);
-                    FileUtil.deleteFile(filePath + System.getProperty("file.separator"));
+                    FileUtil.deleteFile(filePath + System.getProperty("file.separator") + f);
                 }
             });
         }
@@ -288,6 +287,9 @@ public class VocalService extends AdminService {
 
             while (csv.hasNext()) {
                 List < String > x = csv.next();
+                if(x.get(0).equals("")){
+                    break;
+                }
                 Vocal vocal = Vocal.builder()
                         .id(x.get(0))
                         .songCd(x.get(1))
@@ -297,7 +299,7 @@ public class VocalService extends AdminService {
                         .vibe(x.get(5))
                         .studioCd(x.get(6))
                         .micNm(x.get(7))
-                        .audioIfNm(x.size() >= 9 ? x.get(8) : "")
+                        .audioIfNm(x.size() >= fieldNames.size() ? x.get(8) : "")
                         .importYn("Y")
                         .regId(userId)
                         .modId(userId)
