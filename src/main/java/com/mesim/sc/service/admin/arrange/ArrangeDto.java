@@ -11,8 +11,7 @@ import java.util.List;
 @Data
 public class ArrangeDto extends AdminDto {
 
-    private int id;
-    private String contentsCd;
+    private String id;
     private String arrangerCd;
     private String arrangerNm;
     private String arrangerRole;
@@ -27,7 +26,6 @@ public class ArrangeDto extends AdminDto {
 
     public ArrangeDto(Arrange entity) {
         this.id = entity.getId();
-        this.contentsCd = entity.getContentsCd();
         this.arrangerCd = entity.getArrangerCd();
         if (entity.getArranger() != null) {
             this.arrangerNm = entity.getArranger().getConsortiumNm();
@@ -49,7 +47,6 @@ public class ArrangeDto extends AdminDto {
     public Arrange toEntity() {
         return Arrange.builder()
                 .id(this.id)
-                .contentsCd(this.contentsCd)
                 .arrangerCd(this.arrangerCd)
                 .arrangeDate(this.arrangeDate.length() < 11 ? Date.valueOf(this.arrangeDate) : Date.valueOf(this.arrangeDate.substring(0,10)))
                 .importYn(this.importYn != null ? this.importYn : "N")

@@ -42,8 +42,8 @@ public class InspectionService extends AdminService {
                     .id(inspectionDto.getId())
                     .inspectionId(inspectionDto.getInspectionId())
                     .songCd(inspectionDto.getSongCd())
-                    .contentsCd(inspectionDto.getContentsCd())
-                    .arrangeId(inspectionDto.getArrangeId())
+                    .vocalContentsCd(inspectionDto.getVocalContentsCd())
+                    .arrangeContentsCd(inspectionDto.getArrangeContentsCd())
                     .resultIns(inspectionDto.getResultIns())
                     .regId(inspectionDto.getRegId())
                     .modId(inspectionDto.getModId())
@@ -56,10 +56,10 @@ public class InspectionService extends AdminService {
             Inspection temp = inspectionList.get(0);
             if (temp.getSongCd() != null) {
                 ((InspectionRepository) this.repository).deleteBySongCd(temp.getSongCd());
-            } else if (temp.getContentsCd() != null) {
-                ((InspectionRepository) this.repository).deleteByContentsCd(temp.getContentsCd());
-            } else if (temp.getArrangeId() != null) {
-                ((InspectionRepository) this.repository).deleteByArrangeId(temp.getArrangeId());
+            } else if (temp.getVocalContentsCd() != null) {
+                ((InspectionRepository) this.repository).deleteByVocalContentsCd(temp.getVocalContentsCd());
+            } else if (temp.getArrangeContentsCd() != null) {
+                ((InspectionRepository) this.repository).deleteByArrangeContentsCd(temp.getArrangeContentsCd());
             }
         }
 

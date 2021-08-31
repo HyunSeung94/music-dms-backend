@@ -13,8 +13,8 @@ public class InspectionDto extends AdminDto {
     private int id;
     private String inspectionId;
     private String songCd;
-    private String contentsCd;
-    private Integer arrangeId;
+    private String vocalContentsCd;
+    private String arrangeContentsCd;
     private String resultIns;
     private String question;
 
@@ -24,8 +24,8 @@ public class InspectionDto extends AdminDto {
         this.id = entity.getId();
         this.inspectionId = entity.getInspectionId();
         this.songCd = entity.getSongCd();
-        this.contentsCd = entity.getContentsCd();
-        this.arrangeId = entity.getArrangeId();
+        this.vocalContentsCd = entity.getVocalContentsCd();
+        this.arrangeContentsCd = entity.getArrangeContentsCd();
         this.resultIns = entity.getResultIns();
         this.question = entity.getInspectionInfo() != null ? entity.getInspectionInfo().getQuestion() : null;
         this.regId = entity.getRegId();
@@ -40,8 +40,8 @@ public class InspectionDto extends AdminDto {
                 .id(this.id)
                 .inspectionId(this.inspectionId)
                 .songCd(this.songCd)
-                .contentsCd(this.contentsCd)
-                .arrangeId(this.arrangeId)
+                .vocalContentsCd(this.vocalContentsCd)
+                .arrangeContentsCd(this.arrangeContentsCd)
                 .resultIns(this.resultIns)
                 .regId(this.regId)
                 .modId(this.modId == null ? this.regId : this.modId)

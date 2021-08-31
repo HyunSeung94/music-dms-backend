@@ -21,13 +21,8 @@ import java.sql.Date;
 public class Arrange extends CrudEntity {
 
     @Id
-    @Column(name = "ARRANGE_ID")
-    @SequenceGenerator(name = "COL_GEN_ARRANGE_ID_SEQ", sequenceName = "ARRANGE_ID_SEQ", allocationSize = 1)
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "COL_GEN_ARRANGE_ID_SEQ")
-    private int id;
-
     @Column(name = "CONTENTS_CD")
-    private String contentsCd;
+    private String id;;
 
     @Column(name = "ARRANGER_CD")
     private String arrangerCd;
@@ -49,11 +44,10 @@ public class Arrange extends CrudEntity {
     private String importYn;
 
     @Builder
-    public Arrange(int id, String contentsCd, String arrangerCd, Date arrangeDate,String importYn, String regId, String modId) {
+    public Arrange(String id,  String arrangerCd, Date arrangeDate,String importYn, String regId, String modId) {
         super(regId, modId);
 
         this.id = id;
-        this.contentsCd = contentsCd;
         this.arrangerCd = arrangerCd;
         this.arrangeDate = arrangeDate;
         this.importYn = importYn;

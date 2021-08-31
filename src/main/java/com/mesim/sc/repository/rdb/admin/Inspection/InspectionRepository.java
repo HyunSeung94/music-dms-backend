@@ -17,8 +17,8 @@ public interface InspectionRepository extends AdminRepository<Inspection, String
 
     void deleteBySongCd(String songCd);
 
-    void deleteByContentsCd(String contentsCd);
+    void deleteByVocalContentsCd(String vocalContentsCd);
 
-    void deleteByArrangeId(int arrangeId);
+    void deleteByArrangeContentsCd(String arrangeContentsCd);
 
 }

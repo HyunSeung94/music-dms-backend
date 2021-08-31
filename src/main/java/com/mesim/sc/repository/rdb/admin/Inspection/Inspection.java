@@ -15,7 +15,7 @@ import javax.persistence.*;
 public class Inspection extends CrudEntity {
 
     @Id
-    @Column(name = "ID")
+    @Column(name = "INSPECTION_SQ")
     @SequenceGenerator(name = "COL_GEN_INSPECTION_ID_SEQ", sequenceName = "INSPECTION_ID_SEQ", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "COL_GEN_INSPECTION_ID_SEQ")
     private int id;
@@ -26,11 +26,11 @@ public class Inspection extends CrudEntity {
     @Column(name = "SONG_CD")
     private String songCd;
 
-    @Column(name = "CONTENTS_CD")
-    private String contentsCd;
+    @Column(name = "VOCAL_CONTENTS_CD")
+    private String vocalContentsCd;
 
-    @Column(name = "ARRANGE_ID")
-    private Integer arrangeId;
+    @Column(name = "ARRANGE_CONTENTS_CD")
+    private String arrangeContentsCd;
 
     @Column(name = "RESULT_INS")
     private String resultIns;
@@ -41,14 +41,14 @@ public class Inspection extends CrudEntity {
     private InspectionInfo inspectionInfo;
 
     @Builder
-    public Inspection(int id, InspectionInfo inspectionInfo, String inspectionId, String songCd, String contentsCd, Integer arrangeId, String resultIns, String regId, String modId) {
+    public Inspection(int id, InspectionInfo inspectionInfo, String inspectionId, String songCd, String vocalContentsCd, String arrangeContentsCd, String resultIns, String regId, String modId) {
         super(regId, modId);
         this.id = id;
         this.inspectionInfo = inspectionInfo;
         this.inspectionId = inspectionId;
         this.songCd = songCd;
-        this.contentsCd = contentsCd;
-        this.arrangeId = arrangeId;
+        this.vocalContentsCd = vocalContentsCd;
+        this.arrangeContentsCd = arrangeContentsCd;
         this.resultIns = resultIns;
     }
 

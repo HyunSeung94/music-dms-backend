@@ -120,7 +120,7 @@ public class ArrangeService extends AdminService {
         return optEntity.map(o -> {
             try {
                 ArrangeDto dto = (ArrangeDto) toDto(o, 0);
-                String filePath = FileUtil.makePath(this.fileBasePath, this.vocalPath, dto.getContentsCd());
+                String filePath = FileUtil.makePath(this.fileBasePath, this.vocalPath, dto.getId());
 
                 List<String> fileNameList = new ArrayList<>();
                 FileUtil.fileList(filePath).forEach(f -> {
@@ -141,7 +141,7 @@ public class ArrangeService extends AdminService {
     public Object add(Object data, MultipartFile[] files,String userId) throws BackendException {
         ArrangeDto savedArrangeDto = (ArrangeDto) this.save(data);
 
-        String filePath = FileUtil.makePath(this.fileBasePath, this.vocalPath, savedArrangeDto.getContentsCd());
+        String filePath = FileUtil.makePath(this.fileBasePath, this.vocalPath, savedArrangeDto.getId());
         String tempPath = FileUtil.makePath(this.fileBasePath, this.fileTempPath, userId);
 
         try {
@@ -168,8 +168,8 @@ public class ArrangeService extends AdminService {
         List<Map<String,Object>> list = (List<Map<String, Object>>) map.get("data");
 
         for (int i = 0; i < list.size(); i++) {
-            String contentsCd = list.get(i).get("contentsCd").toString();
-            String filePath = FileUtil.makePath(this.fileBasePath, this.vocalPath, contentsCd);
+            String id = list.get(i).get("id").toString();
+            String filePath = FileUtil.makePath(this.fileBasePath, this.vocalPath, id);
 
             FileUtil.fileList(filePath).forEach(f -> {
                 if (!f.contains("vdata")) {
@@ -256,7 +256,7 @@ public class ArrangeService extends AdminService {
             while (csv.hasNext()) {
                 List < String > x = csv.next();
                 Arrange arrange = Arrange.builder()
-                        .contentsCd(x.get(0))
+                        .id(x.get(0))
                         .arrangerCd(x.get(1))
                         .arrangeDate(Date.valueOf(x.get(2)))
                         .importYn("Y")
