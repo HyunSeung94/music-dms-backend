@@ -19,7 +19,7 @@ public class ArrangeDto extends AdminDto {
     private String regNm;
     private String regGroupNm;
     private String importYn;
-
+    private String status;
     private List fileList;
 
     public ArrangeDto() {}
@@ -33,6 +33,7 @@ public class ArrangeDto extends AdminDto {
         }
         this.arrangeDate = DateUtil.toFormat_yyyyMMdd(entity.getArrangeDate().getTime());
         this.importYn = entity.getImportYn();
+        this.status = entity.getStatus();
         this.regId = entity.getRegId();
         if (entity.getRegUser() != null) {
             this.regNm = entity.getRegUser().getName();
@@ -50,6 +51,7 @@ public class ArrangeDto extends AdminDto {
                 .arrangerCd(this.arrangerCd)
                 .arrangeDate(this.arrangeDate.length() < 11 ? Date.valueOf(this.arrangeDate) : Date.valueOf(this.arrangeDate.substring(0,10)))
                 .importYn(this.importYn != null ? this.importYn : "N")
+                .status(this.status)
                 .regId(this.regId)
                 .modId(this.modId == null ? this.regId : this.modId)
                 .build();

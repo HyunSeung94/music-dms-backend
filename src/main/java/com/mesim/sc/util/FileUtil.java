@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -76,11 +77,23 @@ public class FileUtil {
                 folder.mkdirs();
             }
 
-            File tempFile = new File (fileTempPath+ System.getProperty("file.separator") + name);
+            File tempFile = new File(fileTempPath+ System.getProperty("file.separator") + name);
             File saveFile = new File(path + System.getProperty("file.separator") + name);
             tempFile.renameTo(saveFile);
 
         return true;
+    }
+    public static boolean moveCsvFile(String path,String saveFileName, String tempFileName,String fileTempPath) throws IOException {
+        File folder = new File(path);
+
+        if (!folder.exists()) {
+            folder.mkdirs();
+        }
+
+        File tempFile = new File(fileTempPath+ System.getProperty("file.separator") + tempFileName);
+        File saveFile = new File(path + System.getProperty("file.separator") + saveFileName);
+        return tempFile.renameTo(saveFile);
+
     }
 
     public static byte[] download(String filePath) throws BackendException {

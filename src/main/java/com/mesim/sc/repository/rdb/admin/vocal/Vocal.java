@@ -53,6 +53,9 @@ public class Vocal extends CrudEntity {
     @Column(name = "IMPORT_YN")
     private String importYn;
 
+    @Column(name = "STATUS")
+    private String status;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @NotFound(action = NotFoundAction.IGNORE)
     @JoinColumn(name = "SONG_CD", referencedColumnName = "SONG_CD", insertable = false, updatable = false)
@@ -72,7 +75,7 @@ public class Vocal extends CrudEntity {
     private Code studio;
 
     @Builder
-    public Vocal(String id, String songCd, String singerCd, String recordLength, Date recordDate, String vibe, String studioCd, String micNm, String audioIfNm, String importYn, String regId, String modId) {
+    public Vocal(String id, String songCd, String singerCd, String recordLength, Date recordDate, String vibe, String studioCd, String micNm, String audioIfNm, String importYn,String status, String regId, String modId) {
         super(regId, modId);
 
         this.id = id;
@@ -85,6 +88,7 @@ public class Vocal extends CrudEntity {
         this.micNm = micNm;
         this.audioIfNm = audioIfNm;
         this.importYn = importYn;
+        this.status = status;
     }
 
 }

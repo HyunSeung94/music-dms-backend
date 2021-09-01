@@ -34,7 +34,7 @@ public class VocalDto extends AdminDto {
     private Integer regGroupId;
     private String regGroupNm;
     private String importYn;
-
+    private String status;
     private List fileList;
 
     public VocalDto() {}
@@ -63,6 +63,7 @@ public class VocalDto extends AdminDto {
         this.micNm = entity.getMicNm();
         this.audioIfNm = entity.getAudioIfNm();
         this.importYn = entity.getImportYn();
+        this.status = entity.getStatus();
         this.regId = entity.getRegId();
         if (entity.getRegUser() != null) {
             this.regNm = entity.getRegUser().getName();
@@ -87,6 +88,7 @@ public class VocalDto extends AdminDto {
                 .micNm(this.micNm)
                 .audioIfNm(this.audioIfNm)
                 .importYn(this.importYn != null ? this.importYn : "N")
+                .status(this.status)
                 .regId(this.regId)
                 .modId(this.modId == null ? this.regId : this.modId)
                 .build();

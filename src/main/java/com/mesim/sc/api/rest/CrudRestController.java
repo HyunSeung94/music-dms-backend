@@ -366,7 +366,7 @@ public abstract class CrudRestController {
     public ApiResponseDto deleteCsvFile(Authentication authentication) throws BackendException {
         try {
             String userId = authentication.getPrincipal().toString();
-            return new ApiResponseDto(true, FileUtil.deleteFile(FileUtil.makePath(fileBasePath, csvPath,userId)));
+            return new ApiResponseDto(true, FileUtil.deleteFile(FileUtil.makePath(fileBasePath, csvPath,tempPath,userId)));
         } catch (Exception e) {
             throw new BackendException(this.name + " 다운로드 중 오류발생", e);
         }
@@ -567,7 +567,22 @@ public abstract class CrudRestController {
             this.service.importCsv(files, userId);
             return new ApiResponseDto(true);
         } catch (Exception e) {
-            throw new BackendException(this.name + " 가져오기 중 오류발생", e);
+            throw new BackendException(this.name + "오류 발생", e);
+        }
+    }
+
+
+    /**
+     * fileCheck
+     * @return
+     * @throws BackendException
+     */
+    @RequestMapping(value = "fileCheck", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ApiResponseDto fileCheck() throws BackendException {
+        try {
+            return new ApiResponseDto(true, this.service.getListFileCheck());
+        } catch (Exception e) {
+            throw new BackendException(this.name + " 쿼리 생성 조회 중 오류발생", e);
         }
     }
 

@@ -27,10 +27,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Date;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -133,7 +132,6 @@ public class CreativeSongService extends AdminService {
     public Object get(String id) {
         String filePath = FileUtil.makePath(this.fileBasePath, this.songPath, id);
         List<String> fileNameList = FileUtil.fileList(filePath);
-
         Optional<Object> optEntity = this.repository.findById(id);
 
         return optEntity.map(o -> {
@@ -224,20 +222,26 @@ public class CreativeSongService extends AdminService {
         }
     }
 
+
+
     @Override
     public void importCsv(MultipartFile[] multipartFile, String userId) throws IOException, BackendException {
         String fileName= multipartFile[0].getOriginalFilename();
         String ext = FileUtil.getExt(fileName);
+        String time = DateTimeFormatter.ofPattern("yyyyMMddhhmmss").format(LocalDateTime.now());
+        String saveFileName = userId +"_"+ time + ".csv";
         if (!ext.equals("csv")) {
             throw new BackendException("지원하지 않는 파일 형식입니다.");
         }
 
-        String path = FileUtil.makePath(fileBasePath,csvPath,userId);
-
-        File file = new File(path + System.getProperty("file.separator") + fileName);
 
 
-        try (InputStream in = new FileInputStream(file);) {
+        String tempPath = FileUtil.makePath(fileBasePath,csvPath,fileTempPath,userId);
+        String savePath = FileUtil.makePath(fileBasePath,csvPath,songPath,userId);
+        File file = new File(tempPath + System.getProperty("file.separator") + fileName);
+
+        InputStream in = new FileInputStream(file);
+        try {
             CSV csv = new CSV(true, ',', in );
             List<CreativeSong> songList = new ArrayList < > ();
             List < String > fieldNames = null;
@@ -262,6 +266,7 @@ public class CreativeSongService extends AdminService {
                         .referenceArtist(x.get(10))
                         .createDate(Date.valueOf(x.get(11)))
                         .importYn("Y")
+                        .status("1")
                         .regId(userId)
                         .modId(userId)
                         .build();
@@ -270,8 +275,61 @@ public class CreativeSongService extends AdminService {
 
             }
             this.repository.saveAll(songList);
+        }finally {
+            in.close();
         }
-//        file.delete();
+        FileUtil.moveCsvFile(savePath,saveFileName,fileName, tempPath);
+        getListFileCheck();
+    }
+
+    @Override
+    public Object getListFileCheck() {
+
+        List<CreativeSong> list =  this.repository.findAll();
+        String[] fileCheck = { "guide.wav", "melody.mid", "mix.wav", "mr.wav", "score.mxl", "score.pdf" };
+        List<String> checkList = Arrays.asList(fileCheck);
+        List<CreativeSong> songList = new ArrayList < > ();
+
+        for(int i=0; i<list.size(); i++){
+            List<String> outList = new ArrayList<>();
+            String id = list.get(i).getId();
+            String filePath = FileUtil.makePath(this.fileBasePath, this.songPath, id);
+
+            FileUtil.fileList(filePath).forEach(fileName -> {
+                String[] fileId= fileName.split("_");
+                if(fileId[0].equals(id)){
+
+                    for(String filed : fileCheck){
+                        if (fileName.contains(filed)) {
+                            outList.add(filed);
+                        }
+                    }
+                }
+            });
+            CreativeSong creativeSong = CreativeSong.builder()
+                .id(list.get(i).getId())
+                .composerCd(list.get(i).getComposerCd())
+                .genre(list.get(i).getGenre())
+                .songNm(list.get(i).getSongNm())
+                .songLength(list.get(i).getSongLength())
+                .tonality(list.get(i).getTonality())
+                .tempo(list.get(i).getTempo())
+                .vibe(list.get(i).getVibe())
+                .instrumentCd(list.get(i).getInstrumentCd())
+                .referenceSong(list.get(i).getReferenceSong())
+                .referenceArtist(list.get(i).getReferenceArtist())
+                .createDate(list.get(i).getCreateDate())
+                .importYn(list.get(i).getImportYn())
+                .status(outList.containsAll(checkList) != true? "0" : "1")
+                .regId(list.get(i).getRegId())
+                .modId(list.get(i).getModId())
+                .build();
+                songList.add(creativeSong);
+
+        }
+
+        this.repository.saveAll(songList);
+        return songList;
     }
 
 }

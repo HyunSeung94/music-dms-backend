@@ -1626,4 +1626,13 @@ public abstract class CrudService {
             log.info(list.toString());
         }
     }
+
+    /**
+     * 각 서비스에서 오버라이딩
+     * @return
+     */
+    public Object getListFileCheck() {
+        return null;
+    }
+
 }

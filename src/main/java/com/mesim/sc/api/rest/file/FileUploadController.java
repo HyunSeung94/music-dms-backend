@@ -80,7 +80,7 @@ public class FileUploadController {
 
     public ApiResponseDto uploadCsvFile(MultipartFile[] files,String userId) throws IOException{
 
-        String filePath = FileUtil.makePath(this.fileBasePath, this.csvPath, userId);
+        String filePath = FileUtil.makePath(this.fileBasePath, this.csvPath, this.fileTempPath, userId);
 
         for (MultipartFile file : files) {
             FileUtil.upload(filePath, file.getOriginalFilename(), file);

@@ -7,9 +7,12 @@ import com.mesim.sc.repository.PageWrapper;
 import com.mesim.sc.repository.rdb.CrudRepository;
 import com.mesim.sc.repository.rdb.admin.AdminSpecs;
 import com.mesim.sc.repository.rdb.admin.song.CreativeSong;
+import com.mesim.sc.repository.rdb.admin.song.CreativeSongRepository;
 import com.mesim.sc.repository.rdb.admin.vocal.Vocal;
 import com.mesim.sc.repository.rdb.admin.vocal.VocalRepository;
 import com.mesim.sc.service.admin.AdminService;
+import com.mesim.sc.service.admin.song.CreativeSongDto;
+import com.mesim.sc.service.admin.song.CreativeSongService;
 import com.mesim.sc.util.CSV;
 import com.mesim.sc.util.FileUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -30,10 +33,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Date;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -57,6 +59,11 @@ public class VocalService extends AdminService {
     @Value("${file.data.csv.path}")
     private String csvPath;
 
+    @Autowired
+    private CreativeSongService songService;
+
+    @Autowired
+    private CreativeSongRepository creativeSongRepository;
 
     @Autowired
     @Qualifier("vocalRepository")
@@ -65,7 +72,7 @@ public class VocalService extends AdminService {
     }
 
     @PostConstruct
-    public void init () {
+    public void init() {
         this.selectSortField = "id";
         this.searchFields = new String[]{"id", "songCd", "songSongNm", "singerCd", "singerConsortiumNm", "studioName"};
         this.joinedSortField = new String[]{"song", "singer", "studio"};
@@ -166,7 +173,7 @@ public class VocalService extends AdminService {
     }
 
 
-    public Object add(Object data, MultipartFile[] files,String userId) throws BackendException {
+    public Object add(Object data, MultipartFile[] files, String userId) throws BackendException {
         VocalDto savedVocalDto = (VocalDto) this.save(data);
 
         String filePath = FileUtil.makePath(this.fileBasePath, this.vocalPath, savedVocalDto.getId());
@@ -186,14 +193,14 @@ public class VocalService extends AdminService {
     @Override
     public boolean delete(Object o) {
         Map<String, Object> map = (Map<String, Object>) o;
-        List<Object> deleteObjects =((List<Object>) map.get("data"))
+        List<Object> deleteObjects = ((List<Object>) map.get("data"))
                 .stream()
                 .map(ExceptionHandler.wrap(object -> this.toEntity(object)))
                 .collect(Collectors.toList());
 
         this.repository.deleteAll(deleteObjects);
 
-        List<Map<String,Object>> list = (List<Map<String, Object>>) map.get("data");
+        List<Map<String, Object>> list = (List<Map<String, Object>>) map.get("data");
 
         for (int i = 0; i < list.size(); i++) {
             String id = list.get(i).get("id").toString();
@@ -209,7 +216,7 @@ public class VocalService extends AdminService {
         return true;
     }
 
-    public byte[] fileDownload(String id, String fileName)  throws BackendException {
+    public byte[] fileDownload(String id, String fileName) throws BackendException {
         String filePath = FileUtil.makePath(this.fileBasePath, this.vocalPath, id, fileName);
         return FileUtil.download(filePath);
     }
@@ -227,7 +234,7 @@ public class VocalService extends AdminService {
 
                 List<String> fileList = new ArrayList<>();
                 FileUtil.fileList(songFilePath).forEach(f -> {
-                    fileList.add(songFilePath +System.getProperty("file.separator")+ f);
+                    fileList.add(songFilePath + System.getProperty("file.separator") + f);
                 });
                 FileUtil.fileList(vocalFilePath).forEach(f -> {
                     if (f.contains("vdata")) {
@@ -268,28 +275,43 @@ public class VocalService extends AdminService {
 
     @Override
     public void importCsv(MultipartFile[] multipartFile, String userId) throws IOException, BackendException {
-        String fileName= multipartFile[0].getOriginalFilename();
+        songService.getListFileCheck();
+
+        String fileName = multipartFile[0].getOriginalFilename();
         String ext = FileUtil.getExt(fileName);
+        String time = DateTimeFormatter.ofPattern("yyyyMMddhhmmss").format(LocalDateTime.now());
+        String saveFileName = userId +"_"+ time + ".csv";
         if (!ext.equals("csv")) {
             throw new BackendException("지원하지 않는 파일 형식입니다.");
         }
 
-        String path = FileUtil.makePath(fileBasePath,csvPath,userId);
+        String tempPath = FileUtil.makePath(fileBasePath, csvPath, fileTempPath, userId);
+        String savePath = FileUtil.makePath(fileBasePath, csvPath, vocalPath, userId);
+        File file = new File(tempPath + System.getProperty("file.separator") + fileName);
 
-        File file = new File(path + System.getProperty("file.separator") + fileName);
+        InputStream in = new FileInputStream(file);
+        try  {
 
-
-        try (InputStream in = new FileInputStream(file);) {
-            CSV csv = new CSV(true, ',', in );
-            List<Vocal> vocalList = new ArrayList < > ();
-            List < String > fieldNames = null;
-            if (csv.hasNext()) fieldNames = new ArrayList < > (csv.next());
+            CSV csv = new CSV(true, ',', in);
+            List<Vocal> vocalList = new ArrayList<>();
+            List<String> fieldNames = null;
+            if (csv.hasNext()) fieldNames = new ArrayList<>(csv.next());
 
             while (csv.hasNext()) {
-                List < String > x = csv.next();
-                if(x.get(0).equals("")){
+                List<String> x = csv.next();
+                if (x.get(0).equals("")) {
                     break;
                 }
+
+                Optional<CreativeSong> resultSong = creativeSongRepository.findById(x.get(1));
+                if(resultSong.isPresent()){
+                    if (resultSong.get().getStatus().equals("0")) {
+                        throw new BackendException("창작곡 파일이 없습니다..");
+                    }
+                }else{
+                    throw new BackendException(x.get(1)+"의 창작곡이 없습니다..");
+                }
+
                 Vocal vocal = Vocal.builder()
                         .id(x.get(0))
                         .songCd(x.get(1))
@@ -301,6 +323,7 @@ public class VocalService extends AdminService {
                         .micNm(x.get(7))
                         .audioIfNm(x.size() >= fieldNames.size() ? x.get(8) : "")
                         .importYn("Y")
+                        .status("1")
                         .regId(userId)
                         .modId(userId)
                         .build();
@@ -309,7 +332,59 @@ public class VocalService extends AdminService {
 
             }
             this.repository.saveAll(vocalList);
+
+        }finally {
+            in.close();
         }
+        FileUtil.moveCsvFile(savePath,saveFileName,fileName, tempPath);
+        getListFileCheck();
+    }
+
+    @Override
+    public Object getListFileCheck() {
+
+        List<Vocal> list = this.repository.findAll();
+        String[] fileCheck = {"vdata.wav"};
+        List<String> checkList = Arrays.asList(fileCheck);
+        List<Vocal> vocalList = new ArrayList<>();
+
+        for (int i = 0; i < list.size(); i++) {
+            List<String> outList = new ArrayList<>();
+            String id = list.get(i).getId();
+            String filePath = FileUtil.makePath(this.fileBasePath, this.vocalPath, id);
+
+            FileUtil.fileList(filePath).forEach(fileName -> {
+                String[] fileId = fileName.split("_");
+                if (fileId[0].equals(id)) {
+
+                    for (String filed : fileCheck) {
+                        if (fileName.contains(filed)) {
+                            outList.add(filed);
+                        }
+                    }
+                }
+            });
+
+            Vocal vocal = Vocal.builder()
+                .id(list.get(i).getId())
+                .songCd(list.get(i).getSongCd())
+                .singerCd(list.get(i).getSingerCd())
+                .recordLength(list.get(i).getRecordLength())
+                .recordDate(list.get(i).getRecordDate())
+                .vibe(list.get(i).getVibe())
+                .studioCd(list.get(i).getStudioCd())
+                .micNm(list.get(i).getMicNm())
+                .audioIfNm(list.get(i).getMicNm())
+                .importYn(list.get(i).getImportYn())
+                .status(outList.containsAll(checkList) != true? "0" : "1")
+                .regId(list.get(i).getRegId())
+                .modId(list.get(i).getModId())
+                .build();
+                vocalList.add(vocal);
+        }
+
+        this.repository.saveAll(vocalList);
+        return vocalList;
     }
 
 }

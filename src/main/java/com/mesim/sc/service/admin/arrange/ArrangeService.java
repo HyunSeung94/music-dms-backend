@@ -12,7 +12,9 @@ import com.mesim.sc.repository.rdb.admin.song.CreativeSongRepository;
 import com.mesim.sc.repository.rdb.admin.vocal.Vocal;
 import com.mesim.sc.repository.rdb.admin.vocal.VocalRepository;
 import com.mesim.sc.service.admin.AdminService;
+import com.mesim.sc.service.admin.song.CreativeSongService;
 import com.mesim.sc.service.admin.vocal.VocalDto;
+import com.mesim.sc.service.admin.vocal.VocalService;
 import com.mesim.sc.util.CSV;
 import com.mesim.sc.util.FileUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -31,10 +33,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.Date;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -52,12 +53,18 @@ public class ArrangeService extends AdminService {
     @Value("${file.data.vocal.path}")
     private String vocalPath;
 
+    @Value("${file.data.arrange.path}")
+    private String arrangePath;
+
     @Value("${file.data.temp.path}")
     private String fileTempPath;
 
     @Value("${file.data.csv.path}")
     private String csvPath;
 
+
+    @Autowired
+    private VocalService vocalService;
 
     @Autowired
     private VocalRepository vocalRepository;
@@ -115,7 +122,7 @@ public class ArrangeService extends AdminService {
 
     @Override
     public Object get(String id) {
-        Optional<Object> optEntity = this.repository.findById(Integer.parseInt(id));
+        Optional<Object> optEntity = this.repository.findById(id);
 
         return optEntity.map(o -> {
             try {
@@ -236,18 +243,23 @@ public class ArrangeService extends AdminService {
 
     @Override
     public void importCsv(MultipartFile[] multipartFile, String userId) throws IOException, BackendException {
+        vocalService.getListFileCheck();
+
         String fileName= multipartFile[0].getOriginalFilename();
         String ext = FileUtil.getExt(fileName);
+        String time = DateTimeFormatter.ofPattern("yyyyMMddhhmmss").format(LocalDateTime.now());
+        String saveFileName = userId +"_"+ time + ".csv";
         if (!ext.equals("csv")) {
             throw new BackendException("지원하지 않는 파일 형식입니다.");
         }
 
-        String path = FileUtil.makePath(fileBasePath,csvPath,userId);
 
-        File file = new File(path + System.getProperty("file.separator") + fileName);
+        String tempPath = FileUtil.makePath(fileBasePath,csvPath,fileTempPath,userId);
+        String savePath = FileUtil.makePath(fileBasePath,csvPath,arrangePath,userId);
+        File file = new File(tempPath + System.getProperty("file.separator") + fileName);
 
-
-        try (InputStream in = new FileInputStream(file);) {
+        InputStream in = new FileInputStream(file);
+        try {
             CSV csv = new CSV(true, ',', in );
             List<Arrange> arrangeList = new ArrayList < > ();
             List < String > fieldNames = null;
@@ -255,11 +267,22 @@ public class ArrangeService extends AdminService {
 
             while (csv.hasNext()) {
                 List < String > x = csv.next();
+
+                Optional<Vocal> vocal = vocalRepository.findById(x.get(0));
+                if(vocal.isPresent()){
+                    if (vocal.get().getStatus().equals("0")) {
+                        throw new BackendException(x.get(0)+"보컬음원 파일이 없습니다..");
+                    }
+                }else{
+                    throw new BackendException(x.get(0)+"의 보컬음원이 없습니다..");
+                }
+
                 Arrange arrange = Arrange.builder()
                         .id(x.get(0))
                         .arrangerCd(x.get(1))
                         .arrangeDate(Date.valueOf(x.get(2)))
                         .importYn("Y")
+                        .status("1")
                         .regId(userId)
                         .modId(userId)
                         .build();
@@ -268,7 +291,51 @@ public class ArrangeService extends AdminService {
 
             }
             this.repository.saveAll(arrangeList);
+        }finally {
+            in.close();
         }
+        FileUtil.moveCsvFile(savePath,saveFileName,fileName, tempPath);
+        getListFileCheck();
+    }
+
+    @Override
+    public Object getListFileCheck() {
+
+        List<Arrange> list = this.repository.findAll();
+        String[] fileCheck = { "adata.mid", "adata.csv", "adata.wav" };
+        List<String> checkList = Arrays.asList(fileCheck);
+        List<Arrange> arrangeList = new ArrayList < > ();
+
+        for(int i=0; i<list.size(); i++){
+            List<String> outList = new ArrayList<>();
+            String id = list.get(i).getId();
+            String filePath = FileUtil.makePath(this.fileBasePath, this.vocalPath, id);
+
+            FileUtil.fileList(filePath).forEach(fileName -> {
+                String[] fileId= fileName.split("_");
+                if(fileId[0].equals(id)){
+
+                    for(String filed : fileCheck){
+                        if (fileName.contains(filed)) {
+                            outList.add(filed);
+                        }
+                    }
+                }
+            });
+            Arrange arrange = Arrange.builder()
+                 .id(list.get(i).getId())
+                 .arrangerCd(list.get(i).getArrangerCd())
+                 .arrangeDate(list.get(i).getArrangeDate())
+                 .importYn(list.get(i).getImportYn())
+                 .status(outList.containsAll(checkList) != true? "0" : "1")
+                 .regId(list.get(i).getRegId())
+                 .modId(list.get(i).getModId())
+                 .build();
+                arrangeList.add(arrange);
+        }
+
+        this.repository.saveAll(arrangeList);
+        return arrangeList;
     }
 
 }
