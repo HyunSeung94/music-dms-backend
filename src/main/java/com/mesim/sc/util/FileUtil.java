@@ -46,16 +46,6 @@ public class FileUtil {
         FileUtil.DATA_FILE_PATH = dataFilePath;
     }
 
-    @Value("${file.data.infralayer.path}")
-    public void setInfralayerFilePath(String path) {
-        FileUtil.INFRALAYER_FILE_PATH = path;
-    }
-
-    @Value("${file.data.eventlayer.path}")
-    public void setEventalyerFilePath(String path) {
-        FileUtil.EVENTALYER_FILE_PATH = path;
-    }
-
 
     public static boolean upload(String path, String name, MultipartFile file) throws IOException {
         File folder = new File(path);
