@@ -29,6 +29,8 @@ public class UserDto extends AdminDto {
     private String imgSrc;
     private String imgBase64Str;
 
+    private boolean isPasswordEncoded;
+
     public UserDto() {}
 
     public UserDto(User entity) {
@@ -58,6 +60,8 @@ public class UserDto extends AdminDto {
 //            String filePath = FileUtil.makePath(FileUtil.DATA_FILE_PATH, FileUtil.INFRALAYER_FILE_PATH, this.imgSrc);
 //            this.imgBase64Str = FileUtil.getImgBase64Str(filePath);
 //        }
+
+        this.isPasswordEncoded = false;
     }
 
     @Override
@@ -67,7 +71,7 @@ public class UserDto extends AdminDto {
                 .groupId(this.groupId)
                 .authorityId(this.authorityId)
                 .name(this.name)
-                .password(this.password == null ? null : PwEncoder.encode(this.password))
+                .password(this.password == null ? null : this.isPasswordEncoded ? this.password : PwEncoder.encode(this.password))
                 .email(this.email)
                 .phone(this.phone)
                 .mobile(this.mobile)

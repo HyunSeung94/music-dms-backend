@@ -56,15 +56,15 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                 }
             }
 
+            if (attemptCount >= 10) {
+                this.userConnectService.save(userId, CodeConstants.CONN_LOGIN, HttpUtil.getIP(request), CodeConstants.CONN_ERR_INFO);
+                response.setStatus(HttpStatus.SC_NOT_ACCEPTABLE);
+                return null;
+            }
+
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userId, password);
 
             try {
-//                if (attemptCount >= 5) {
-//                    this.userConnectService.save(userId, CodeConstants.CONN_LOGIN, HttpUtil.getIP(request), CodeConstants.CONN_ERR_INFO);
-//                    response.setStatus(HttpStatus.SC_NOT_ACCEPTABLE);
-//                    return null;
-//                }
-
                 Authentication authentication = authenticationManager.authenticate(authenticationToken);
                 boolean isAuthenticated;
 
@@ -83,8 +83,8 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                 this.userConnectService.save(userId, CodeConstants.CONN_LOGIN, HttpUtil.getIP(request), CodeConstants.CONN_ERR_INFO);
                 response.setStatus(HttpStatus.SC_UNAUTHORIZED);
                 if (attemptCount > -1) {
-                    attemptCount++;
-                    userInfo.setPwTry(attemptCount);
+                    userInfo.setPwTry(++attemptCount);
+                    userInfo.setPasswordEncoded(true);
                     this.userService.save(userInfo);
                 }
             }

@@ -28,10 +28,6 @@ public class PwEncoder {
         return PwEncoder.encoder.encode(str);
     }
 
-    public static String decode(String str) {
-        return PwEncoder.decode(str);
-    }
-
     public static boolean match(String str1, String str2) {
         return PwEncoder.encoder.matches(str1, str2);
     }

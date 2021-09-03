@@ -64,7 +64,7 @@ public class CSV
         } else if ( len > 0 ) {
             pin.unread(b, 0, len);
         }
-        return new InputStreamReader(pin, "UTF-8");
+        return new InputStreamReader(pin, "MS949");
     }
 
     public CSV(boolean stripMultipleNewlines,
