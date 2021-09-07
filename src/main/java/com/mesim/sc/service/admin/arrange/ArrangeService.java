@@ -7,13 +7,9 @@ import com.mesim.sc.repository.PageWrapper;
 import com.mesim.sc.repository.rdb.CrudRepository;
 import com.mesim.sc.repository.rdb.admin.AdminSpecs;
 import com.mesim.sc.repository.rdb.admin.arrange.Arrange;
-import com.mesim.sc.repository.rdb.admin.song.CreativeSong;
-import com.mesim.sc.repository.rdb.admin.song.CreativeSongRepository;
 import com.mesim.sc.repository.rdb.admin.vocal.Vocal;
 import com.mesim.sc.repository.rdb.admin.vocal.VocalRepository;
 import com.mesim.sc.service.admin.AdminService;
-import com.mesim.sc.service.admin.song.CreativeSongService;
-import com.mesim.sc.service.admin.vocal.VocalDto;
 import com.mesim.sc.service.admin.vocal.VocalService;
 import com.mesim.sc.util.CSV;
 import com.mesim.sc.util.FileUtil;
@@ -28,10 +24,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import java.io.*;
 import java.sql.Date;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -336,6 +332,41 @@ public class ArrangeService extends AdminService {
 
         this.repository.saveAll(arrangeList);
         return arrangeList;
+    }
+
+    public Object verification(String id, String jsonStr) throws BackendException {
+        Optional<Arrange> optData = this.repository.findById(id);
+        ArrangeDto data;
+
+        if (optData.isPresent()) {
+            data = new ArrangeDto(optData.get());
+        }  else {
+            throw new BackendException("존재하지 않는 데이터입니다.");
+        }
+
+        try {
+            FileUtil.strToFile(FileUtil.makePath(this.fileBasePath, this.vocalPath, id), "output.json", jsonStr);
+        } catch (IOException e) {
+            throw new BackendException("JSON 파일 업로드 중 오류 발생", e);
+        }
+
+        try {
+            JAXBContext context = JAXBContext.newInstance(ArrangeDto.class);
+            Marshaller m = context.createMarshaller();
+
+            m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+
+            StringWriter sw = new StringWriter();
+            m.marshal(data, sw);
+            String xmlStr = sw.toString();
+
+            FileUtil.strToFile(FileUtil.makePath(this.fileBasePath, this.vocalPath, id), "output.xml", xmlStr);
+
+        } catch (Exception e) {
+            throw new BackendException("XML 파일 업로드 중 오류 발생", e);
+        }
+
+        return data;
     }
 
 }

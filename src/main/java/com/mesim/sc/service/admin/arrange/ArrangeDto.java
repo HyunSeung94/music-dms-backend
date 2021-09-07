@@ -5,9 +5,14 @@ import com.mesim.sc.service.admin.AdminDto;
 import com.mesim.sc.util.DateUtil;
 import lombok.Data;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlRootElement;
 import java.sql.Date;
 import java.util.List;
 
+@XmlRootElement
+@XmlAccessorType(XmlAccessType.FIELD)
 @Data
 public class ArrangeDto extends AdminDto {
 

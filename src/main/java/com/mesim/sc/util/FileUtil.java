@@ -46,6 +46,20 @@ public class FileUtil {
         FileUtil.DATA_FILE_PATH = dataFilePath;
     }
 
+    public static boolean strToFile(String path, String fileName, String str) throws IOException {
+        File folder = new File(path);
+
+        if (!folder.exists()) {
+            folder.mkdirs();
+        }
+
+        File saveFile = new File(path + System.getProperty("file.separator") + fileName);
+        BufferedWriter writer = new BufferedWriter(new FileWriter(saveFile));
+        writer.write(str);
+        writer.close();
+
+        return true;
+    }
 
     public static boolean upload(String path, String name, MultipartFile file) throws IOException {
         File folder = new File(path);

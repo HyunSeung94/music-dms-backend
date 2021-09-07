@@ -72,7 +72,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/auth/checkExist")
                 .antMatchers("/api/admin/user/changePassword")
                 .antMatchers("/api/admin/song/getFiletoByte")
-                .antMatchers("/api/admin/vocal/getFiletoByte");
+                .antMatchers("/api/admin/vocal/getFiletoByte")
+                .antMatchers("/api/admin/arrange/getFiletoByte");
     }
 
     @Override
