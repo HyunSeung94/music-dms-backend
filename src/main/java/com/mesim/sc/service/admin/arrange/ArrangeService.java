@@ -7,9 +7,12 @@ import com.mesim.sc.repository.PageWrapper;
 import com.mesim.sc.repository.rdb.CrudRepository;
 import com.mesim.sc.repository.rdb.admin.AdminSpecs;
 import com.mesim.sc.repository.rdb.admin.arrange.Arrange;
+import com.mesim.sc.repository.rdb.admin.song.CreativeSong;
+import com.mesim.sc.repository.rdb.admin.song.CreativeSongRepository;
 import com.mesim.sc.repository.rdb.admin.vocal.Vocal;
 import com.mesim.sc.repository.rdb.admin.vocal.VocalRepository;
 import com.mesim.sc.service.admin.AdminService;
+import com.mesim.sc.service.admin.metadata.MetaDataDto;
 import com.mesim.sc.service.admin.vocal.VocalService;
 import com.mesim.sc.util.CSV;
 import com.mesim.sc.util.FileUtil;
@@ -64,6 +67,9 @@ public class ArrangeService extends AdminService {
 
     @Autowired
     private VocalRepository vocalRepository;
+
+    @Autowired
+    private CreativeSongRepository creativeSongRepository;
 
     @Autowired
     @Qualifier("arrangeRepository")
@@ -127,7 +133,7 @@ public class ArrangeService extends AdminService {
 
                 List<String> fileNameList = new ArrayList<>();
                 FileUtil.fileList(filePath).forEach(f -> {
-                    if (!f.contains("vdata")) {
+                    if (f.contains("adata")) {
                         fileNameList.add(f);
                     }
                 });
@@ -335,38 +341,47 @@ public class ArrangeService extends AdminService {
     }
 
     public Object verification(String id, String jsonStr) throws BackendException {
-        Optional<Arrange> optData = this.repository.findById(id);
-        ArrangeDto data;
+        Optional<Arrange>  arrange = this.repository.findById(id);
+        Optional<Vocal>  vocal = this.vocalRepository.findById(id);
+        Optional<CreativeSong>  song = this.creativeSongRepository.findById(vocal.get().getSongCd());
 
-        if (optData.isPresent()) {
-            data = new ArrangeDto(optData.get());
+        MetaDataDto metaData;
+        ArrangeDto data;
+        data = (ArrangeDto) get(id);
+
+        if (song.isPresent() && arrange.isPresent() && vocal.isPresent()) {
+            metaData = new MetaDataDto(song.get(),vocal.get(),arrange.get(),data.getFileList());
+
+
         }  else {
             throw new BackendException("존재하지 않는 데이터입니다.");
         }
 
         try {
-            FileUtil.strToFile(FileUtil.makePath(this.fileBasePath, this.vocalPath, id), "output.json", jsonStr);
+            String jsonFileName=id+"_"+"adata.json";
+            FileUtil.strToFile(FileUtil.makePath(this.fileBasePath, this.vocalPath, id), jsonFileName, jsonStr);
         } catch (IOException e) {
             throw new BackendException("JSON 파일 업로드 중 오류 발생", e);
         }
 
         try {
-            JAXBContext context = JAXBContext.newInstance(ArrangeDto.class);
+            JAXBContext context = JAXBContext.newInstance(MetaDataDto.class);
             Marshaller m = context.createMarshaller();
 
             m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
 
             StringWriter sw = new StringWriter();
-            m.marshal(data, sw);
+            m.marshal(metaData, sw);
             String xmlStr = sw.toString();
-
-            FileUtil.strToFile(FileUtil.makePath(this.fileBasePath, this.vocalPath, id), "output.xml", xmlStr);
+            String xmlFileName=id+"_"+"adata.xml";
+            FileUtil.strToFile(FileUtil.makePath(this.fileBasePath, this.vocalPath, id), xmlFileName, xmlStr);
 
         } catch (Exception e) {
             throw new BackendException("XML 파일 업로드 중 오류 발생", e);
         }
 
-        return data;
+        return metaData;
     }
 
 }
+
