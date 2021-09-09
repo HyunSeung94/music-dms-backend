@@ -54,10 +54,17 @@ public class SongInfo{
         this.reference_song = song.getReferenceSong();
         if(song.getInstrumentCd() != null){
             String[] cds= song.getInstrumentCd().split(",");
+            this.melody_instrument = "false";
+            this.drum_instrument = "false";
+            this.bass_instrument = "false";
             for(String cd : cds){
-                this.melody_instrument = cd.equals("MI") ? song.getInstrumentCd() : null;
-                this.drum_instrument = cd.equals("P") ? song.getInstrumentCd() : null;
-                this.bass_instrument = cd.equals("D") ? song.getInstrumentCd() : null;
+                if(cd.equals("MI")){
+                    this.melody_instrument = "true";
+                }else if(cd.equals("P")){
+                    this.drum_instrument = "true";
+                }else if(cd.equals("D")){
+                    this.bass_instrument = "true";
+                }
             }
         }
         this.song_create_checker = song.getModId();
