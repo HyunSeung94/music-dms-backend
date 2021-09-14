@@ -18,6 +18,7 @@ public class UserDto extends AdminDto {
     private String authorityNm;
     private String name;
     private String password;
+    private String status;
     private String email;
     private String phone;
     private String mobile;
@@ -41,6 +42,7 @@ public class UserDto extends AdminDto {
         this.authorityNm = entity.getAuthority() != null ? entity.getAuthority().getName() : null;
         this.name = entity.getName();
         this.password = entity.getPassword();
+        this.status = entity.getStatus();
         this.email = entity.getEmail();
         this.phone = entity.getPhone();
         this.mobile = entity.getMobile();
@@ -72,6 +74,7 @@ public class UserDto extends AdminDto {
                 .authorityId(this.authorityId)
                 .name(this.name)
                 .password(this.password == null ? null : this.isPasswordEncoded ? this.password : PwEncoder.encode(this.password))
+                .status(this.status)
                 .email(this.email)
                 .phone(this.phone)
                 .mobile(this.mobile)

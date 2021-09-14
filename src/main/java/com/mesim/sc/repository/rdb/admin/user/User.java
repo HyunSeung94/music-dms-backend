@@ -32,6 +32,9 @@ public class User extends CrudEntity {
     @Column(name = "PASSWORD")
     private String password;
 
+    @Column(name = "STATUS")
+    private String status;
+
     @Column(name = "EMAIL")
     private String email;
 
@@ -79,6 +82,7 @@ public class User extends CrudEntity {
             int authorityId,
             String name,
             String password,
+            String status,
             String email,
             String phone,
             String mobile,
@@ -100,6 +104,7 @@ public class User extends CrudEntity {
         this.name = name;
         this.password = password;
         this.email = email;
+        this.status = status;
         this.phone = phone;
         this.mobile = mobile;
         this.zipCode = zipCode;
