@@ -3,7 +3,10 @@ package com.mesim.sc.api.rest.auth;
 import com.mesim.sc.api.ApiResponseDto;
 
 import com.mesim.sc.constants.CodeConstants;
+import com.mesim.sc.constants.CommonConstants;
+import com.mesim.sc.exception.BackendException;
 import com.mesim.sc.service.admin.system.UserConnectService;
+import com.mesim.sc.service.admin.user.UserService;
 import com.mesim.sc.service.auth.AuthService;
 
 import com.mesim.sc.util.HttpUtil;
@@ -11,10 +14,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
@@ -27,6 +27,9 @@ public class AuthRestController {
 
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private UserConnectService userConnectService;
@@ -83,6 +86,25 @@ public class AuthRestController {
         } catch(Exception e) {
             log.error("로그아웃 처리 중 오류발생", e);
             this.userConnectService.save(authentication, CodeConstants.CONN_LOGOUT, HttpUtil.getIP(request), e);
+            return new ApiResponseDto(false, null);
+        }
+    }
+
+    /**
+     * 회원가입
+     *
+     * @param dto
+     * @return
+     */
+    @RequestMapping(value="/join", method = RequestMethod.POST)
+    public ApiResponseDto join(@RequestBody Object dto) {
+        try {
+            return new ApiResponseDto(true, userService.add(dto));
+        } catch(Exception e) {
+            log.error("회원가입 처리 중 오류발생", e);
+            if(e.getMessage().equals(CommonConstants.EX_PK_VIOLATION)){
+                return new ApiResponseDto(false, null, "이미 사용중인 ID");
+            }
             return new ApiResponseDto(false, null);
         }
     }
