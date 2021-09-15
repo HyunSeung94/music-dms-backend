@@ -2,18 +2,15 @@ package com.mesim.sc.api.rest.admin.user;
 
 import com.mesim.sc.api.ApiResponseDto;
 import com.mesim.sc.api.rest.admin.AdminRestController;
+import com.mesim.sc.constants.CommonConstants;
 import com.mesim.sc.exception.BackendException;
 import com.mesim.sc.service.CrudService;
-import com.mesim.sc.service.admin.user.UserDto;
 import com.mesim.sc.service.admin.user.UserService;
-import com.mesim.sc.service.admin.vocal.VocalService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @RestController
@@ -57,41 +54,14 @@ public class UserRestController extends AdminRestController {
         }
     }
 
-    /**
-     * 사용자 추가
-     *
-     * @param dto 등록할 데이터 DTO
-     * @return 성공/실패 여부
-     */
-    @RequestMapping(value = "", method = RequestMethod.POST, produces = MediaType.ALL_VALUE)
-    public ApiResponseDto add(
-            @RequestPart(value = "data") Object dto,
-            Authentication authentication
-    ) throws BackendException {
+    // 아이디 중복 체크
+    @RequestMapping(value="duplicate/{id}", method = RequestMethod.GET, produces = MediaType.ALL_VALUE)
+    public ApiResponseDto checkDuplicated(@PathVariable("id") String id) throws BackendException {
         try {
-            String userId = authentication.getPrincipal().toString();
-            return new ApiResponseDto(true, ((UserService) service).add(dto));
+            boolean result = ((UserService) this.service).isDuplicated(id);
+            return new ApiResponseDto(!result, null, "이미 사용중인 ID");
         } catch (Exception e) {
-            throw new BackendException(this.name + " 등록 중 오류발생", e);
-        }
-    }
-
-    /**
-     * 사용자 수정
-     *
-     * @param dto 수정할 데이터 DTO
-     * @return 성공/실패 여부
-     */
-    @RequestMapping(value = "", method = RequestMethod.PUT, produces = MediaType.ALL_VALUE)
-    public ApiResponseDto update(
-            @RequestPart(value = "data") Object dto,
-            Authentication authentication
-    ) throws BackendException {
-        try {
-            String userId = authentication.getPrincipal().toString();
-            return new ApiResponseDto(true, ((UserService) service).update(dto));
-        } catch (Exception e) {
-            throw new BackendException(this.name + " 등록 중 오류발생", e);
+            throw new BackendException(this.name + "중복 체크 중 오류발생", e);
         }
     }
 

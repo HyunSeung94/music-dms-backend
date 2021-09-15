@@ -92,14 +92,14 @@ public class UserService extends AdminService {
 
     // 사용자 추가
     public Object add(Object data) throws BackendException {
-        UserDto savedUserDto = (UserDto) this.save(data);
-        return savedUserDto;
+        return this.save(data);
     }
 
-    // 사용자 수정
-    public Object update(Object data) throws BackendException {
-        UserDto updatedUserDto = (UserDto) this.modify(data);
-        return updatedUserDto;
+    // 중복 조회
+    public boolean isDuplicated(String userId) throws BackendException {
+        Optional<User> optUser = ((UserRepository) this.repository).findById(userId);
+        if (optUser.isPresent()) return true;
+        return false;
     }
 
     // 사용자 삭제
