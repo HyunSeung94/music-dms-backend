@@ -847,13 +847,12 @@ public abstract class CrudService {
         } finally {
             File file = new File(csvFile);
 
-            if (file.exists()) {
-                new File(csvFile).delete();
-            }
-
             try {
                 if (bw != null) {
                     bw.close();
+                    if (file.exists()) {
+                        file.delete();
+                    }
                 }
                 if (printer != null) {
                     printer.close();
@@ -1570,6 +1569,50 @@ public abstract class CrudService {
         }
         return list;
     }
+
+    /**
+     * 장르별 통계 쿼리 조회
+     * @param select
+     * @param groupItem
+     * @param table
+     * @return
+     * @throws BackendException
+     */
+    public List<Object> getRowGenre(String select, String groupItem, String  table,String where) throws BackendException {
+        String[] selectList = select.split(",");
+        String[] selectStandardList = groupItem.split(",");
+        String selectItem = "";
+        where = "";
+
+        List<Object> list = new ArrayList<>();
+        try {
+            for (int i = 0; i < selectStandardList.length; i++) {
+                selectItem = "";
+                for (int j = 0; j < selectList.length; j++) {
+
+                    if(selectList[j].equals("DANCE")){
+                        selectItem += "count (CASE WHEN genre='댄스' THEN 1 END) AS DANCE";
+                    }else if(selectList[j].equals("BALLADE")){
+                        selectItem += "count (CASE WHEN genre='발라드' THEN 1 END) AS BALLADE";
+                    }else if(selectList[j].equals("AGITATION")){
+                        selectItem += "count (CASE WHEN genre='동요' THEN 1 END) AS AGITATION";
+                    }
+
+                    if (j != selectList.length - 1) {
+                        selectItem += ",";
+                    }
+                }
+                String jpql = "SELECT " + selectItem + " FROM " + table + where;
+                Query query = entityManager.createQuery(jpql, Object[].class);
+                query.getResultList().forEach(d -> list.add(d));
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new BackendException("Query 조회 중 오류발생, " + e.getMessage());
+        }
+        return list;
+    }
+
 
     public List<Object> getSelectGroup(String select, String where, String  table) throws BackendException {
         String selectItem = select.replace('#', ',');

@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.Normalizer;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
@@ -72,7 +73,8 @@ public class FileUploadController {
         String filePath = FileUtil.makePath(this.fileBasePath, this.fileTempPath,userId);
 
         for (MultipartFile file : files) {
-            FileUtil.upload(filePath, file.getOriginalFilename(), file);
+            String fileName = Normalizer.normalize(file.getOriginalFilename(), Normalizer.Form.NFC);
+            FileUtil.upload(filePath, fileName, file);
         }
 
         return new ApiResponseDto(true);

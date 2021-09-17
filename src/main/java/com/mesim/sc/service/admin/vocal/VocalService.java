@@ -374,7 +374,7 @@ public class VocalService extends AdminService {
                 .vibe(list.get(i).getVibe())
                 .studioCd(list.get(i).getStudioCd())
                 .micNm(list.get(i).getMicNm())
-                .audioIfNm(list.get(i).getMicNm())
+                .audioIfNm(list.get(i).getAudioIfNm())
                 .importYn(list.get(i).getImportYn())
                 .status(outList.containsAll(checkList) != true? "0" : "1")
                 .regId(list.get(i).getRegId())

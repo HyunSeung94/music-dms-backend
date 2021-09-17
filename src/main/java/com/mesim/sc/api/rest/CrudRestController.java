@@ -481,6 +481,27 @@ public abstract class CrudRestController {
         }
     }
 
+    /***
+     * 장르별 통계 쿼리 조회
+     * @param select
+     * @param groupItem
+     * @param where
+     * @param table
+     * @return
+     * @throws BackendException
+     */
+    @RequestMapping(value = "getRowGenre", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ApiResponseDto getRowGenre(@RequestParam(value = "select", required = false) String select,
+                                      @RequestParam(value = "groupItem", required = false) String groupItem,
+                                      @RequestParam(value = "where", required = false) String where,
+                                      @RequestParam(value = "table") String table) throws BackendException {
+        try {
+            return new ApiResponseDto(true, this.service.getRowGenre(select, groupItem, table, where));
+        } catch (Exception e) {
+            throw new BackendException(this.name + " 쿼리 생성 조회 중 오류발생", e);
+        }
+    }
+
     /**
      * 위젯에서 기간별을 통한 데이터 조회
      * @param select
