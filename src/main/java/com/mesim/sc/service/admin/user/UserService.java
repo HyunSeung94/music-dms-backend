@@ -189,6 +189,7 @@ public class UserService extends AdminService {
         if (optUser.isPresent()) {
             UserDto userDto = this.mapper.convertValue(optUser.get(), UserDto.class);
             userDto.setPassword(SecurityConstants.RESET_PASSWORD);
+            userDto.setPwTry(0);
             return this.save(userDto);
         } else {
             throw new BackendException("존재하지 않는 사용자입니다.");
