@@ -28,7 +28,11 @@ public class UserRestController extends AdminRestController {
     @RequestMapping(value = "changePassword", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE)
     public ApiResponseDto changePassword(@RequestBody Object o) throws BackendException {
         try {
-            return new ApiResponseDto(true, ((UserService) service).changePassword(o));
+            Object result = ((UserService) service).changePassword(o);
+            if (result instanceof ApiResponseDto) {
+                return (ApiResponseDto) result;
+            }
+            return new ApiResponseDto(true, result);
         } catch (Exception e) {
             throw new BackendException(this.name + " 비밀번호 변경 중 오류발생", e);
         }
@@ -74,6 +78,20 @@ public class UserRestController extends AdminRestController {
     public ApiResponseDto update(@PathVariable("id") String userId) throws BackendException {
         try {
             return new ApiResponseDto(true, ((UserService) service).grantUser(userId));
+        } catch (Exception e) {
+            throw new BackendException(this.name + " 승인 중 오류발생", e);
+        }
+    }
+
+    /**
+     * 사용자 승인
+     *
+     * @return 성공/실패 여부
+     */
+    @RequestMapping(value="reset-password/{id}", method = RequestMethod.PUT, produces = MediaType.ALL_VALUE)
+    public ApiResponseDto resetPassword(@PathVariable("id") String userId) throws BackendException {
+        try {
+            return new ApiResponseDto(true, ((UserService) service).resetPassword(userId), "비밀번호가 초기화되었습니다.");
         } catch (Exception e) {
             throw new BackendException(this.name + " 승인 중 오류발생", e);
         }

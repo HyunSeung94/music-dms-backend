@@ -1,6 +1,8 @@
 package com.mesim.sc.service.admin.user;
 
+import com.mesim.sc.api.ApiResponseDto;
 import com.mesim.sc.constants.CommonConstants;
+import com.mesim.sc.constants.SecurityConstants;
 import com.mesim.sc.exception.BackendException;
 import com.mesim.sc.exception.ExceptionHandler;
 import com.mesim.sc.repository.PageWrapper;
@@ -118,13 +120,17 @@ public class UserService extends AdminService {
 
     public Object changePassword(Object o) throws BackendException {
         PasswordChangeDto passwordChangeDto = this.mapper.convertValue(o, PasswordChangeDto.class);
-
         Optional<User> optUser = ((UserRepository) this.repository).findById(passwordChangeDto.getUserId());
 
         if (optUser.isPresent()) {
             UserDto userDto = this.mapper.convertValue(optUser.get(), UserDto.class);
 
             String originPw = userDto.getPassword();
+            
+            if (passwordChangeDto.getOriginPassword() != null && PwEncoder.notMatch(passwordChangeDto.getOriginPassword(), originPw)) {
+                return new ApiResponseDto(false,null,"기존 비밀번호가 일치하지 않습니다.");
+            }
+
             String changePw = passwordChangeDto.getChangePassword();
 
             if (PwEncoder.notMatch(originPw, PwEncoder.encode(changePw))) {
@@ -171,6 +177,18 @@ public class UserService extends AdminService {
             UserDto userDto = this.mapper.convertValue(optUser.get(), UserDto.class);
             userDto.setStatus("Y");
             userDto.setPasswordEncoded(true);
+            return this.save(userDto);
+        } else {
+            throw new BackendException("존재하지 않는 사용자입니다.");
+        }
+    }
+
+    public Object resetPassword(String userId) throws BackendException {
+        Optional<User> optUser = ((UserRepository) this.repository).findById(userId);
+
+        if (optUser.isPresent()) {
+            UserDto userDto = this.mapper.convertValue(optUser.get(), UserDto.class);
+            userDto.setPassword(SecurityConstants.RESET_PASSWORD);
             return this.save(userDto);
         } else {
             throw new BackendException("존재하지 않는 사용자입니다.");
