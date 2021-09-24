@@ -37,6 +37,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -89,7 +90,13 @@ public class ArrangeService extends AdminService {
     }
 
     public PageWrapper getListPage(String regId, String regGroupId, String[] select, int index, int size, String[] sortProperties, String[] keywords, String searchOp, String fromDate, String toDate) throws BackendException {
-        Specification<Object> spec = null;
+        Specification<Object> spec = (root, query, cb) -> {
+            Stream<String> result = Arrays.stream(sortProperties).filter(s -> Arrays.stream(this.joinedSortField).anyMatch(s::startsWith));
+            if (result.count() == 0) {
+                query.distinct(true);
+            }
+            return null;
+        };
 
         if (!regGroupId.equals(Integer.toString(CommonConstants.GROUP_ROOT_ID))) {
             if (regGroupId.equals(Integer.toString(CommonConstants.GROUP_CHILL_ROOT_ID))) {

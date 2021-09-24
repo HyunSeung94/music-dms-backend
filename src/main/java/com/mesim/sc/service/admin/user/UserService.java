@@ -25,11 +25,13 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -59,7 +61,13 @@ public class UserService extends AdminService {
 
     // 전체 목록 조회
     public PageWrapper getListPage(String regId, String regGroupId, String[] select, int index, int size, String[] sortProperties, String[] keywords, String searchOp, String fromDate, String toDate) throws BackendException {
-        Specification<Object> spec = null;
+        Specification<Object> spec = (root, query, cb) -> {
+            Stream<String> result = Arrays.stream(sortProperties).filter(s -> Arrays.stream(this.joinedSortField).anyMatch(s::startsWith));
+            if (result.count() == 0) {
+                query.distinct(true);
+            }
+            return null;
+        };
 
         if (!regGroupId.equals(Integer.toString(CommonConstants.GROUP_ROOT_ID))) {
             if (regGroupId.equals(Integer.toString(CommonConstants.GROUP_CHILL_ROOT_ID))) {
