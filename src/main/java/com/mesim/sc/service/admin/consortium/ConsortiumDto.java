@@ -31,7 +31,7 @@ public class ConsortiumDto extends AdminDto {
         this.dance = entity.getDance();
         this.agitation = entity.getAgitation();
         this.role = entity.getRole();
-        this.ageRange = entity.getAgeRange();
+        this.ageRange = entity.getCodeArgRange().getName();
         this.toneColor = entity.getToneColor();
         this.gender = entity.getGender();
         this.level = entity.getLevel();

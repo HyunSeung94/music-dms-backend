@@ -14,35 +14,32 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.sql.Date;
 import java.util.List;
-
+import java.util.Scanner;
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
 @Data
-public class MetaDataDto {
+public class Metadata {
 
 
 
     private  DataInfo datainfo;
     // 창작곡
     private SongInfo songinfo;
-
-
     // 가창곡 녹음 정보
     private VocalInfo recordinginfo;
-
-
-
     // 가공정보
     private ArrangeInfo labellinginfo;
 
 
-    public MetaDataDto() {}
+    public Metadata() {}
 
-    public MetaDataDto(CreativeSong song, Vocal vocal, Arrange arrange,List<String> fileList) {
+    public Metadata(CreativeSong song, Vocal vocal, Arrange arrange, List<String> fileList,List<List<Object>> codeList) {
         this.datainfo = new DataInfo(vocal,fileList);
-        this.songinfo = new SongInfo(song);
-        this.recordinginfo = new VocalInfo(vocal);
+        this.songinfo = new SongInfo(song,codeList);
+        this.recordinginfo = new VocalInfo(vocal,codeList);
         this.labellinginfo = new ArrangeInfo(arrange);
     }
+
+
 
 }

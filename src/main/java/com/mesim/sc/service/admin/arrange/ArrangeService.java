@@ -12,7 +12,8 @@ import com.mesim.sc.repository.rdb.admin.song.CreativeSongRepository;
 import com.mesim.sc.repository.rdb.admin.vocal.Vocal;
 import com.mesim.sc.repository.rdb.admin.vocal.VocalRepository;
 import com.mesim.sc.service.admin.AdminService;
-import com.mesim.sc.service.admin.metadata.MetaDataDto;
+import com.mesim.sc.service.admin.code.CodeService;
+import com.mesim.sc.service.admin.metadata.Metadata;
 import com.mesim.sc.service.admin.vocal.VocalService;
 import com.mesim.sc.util.CSV;
 import com.mesim.sc.util.FileUtil;
@@ -28,7 +29,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import java.io.*;
 import java.sql.Date;
@@ -66,10 +66,14 @@ public class ArrangeService extends AdminService {
     private VocalService vocalService;
 
     @Autowired
+    private CodeService codeService;
+
+    @Autowired
     private VocalRepository vocalRepository;
 
     @Autowired
     private CreativeSongRepository creativeSongRepository;
+
 
     @Autowired
     @Qualifier("arrangeRepository")
@@ -344,14 +348,16 @@ public class ArrangeService extends AdminService {
         Optional<Arrange>  arrange = this.repository.findById(id);
         Optional<Vocal>  vocal = this.vocalRepository.findById(id);
         Optional<CreativeSong>  song = this.creativeSongRepository.findById(vocal.get().getSongCd());
+        String[][] select = {{"VIBE"},{"STUDIO"}};
+        List<List<Object>> result = this.codeService.getListMultiSelect(select);
 
-        MetaDataDto metaData;
+
+        Metadata metaData;
         ArrangeDto data;
         data = (ArrangeDto) get(id);
 
         if (song.isPresent() && arrange.isPresent() && vocal.isPresent()) {
-            metaData = new MetaDataDto(song.get(),vocal.get(),arrange.get(),data.getFileList());
-
+            metaData = new Metadata(song.get(),vocal.get(),arrange.get(),data.getFileList(),result);
 
         }  else {
             throw new BackendException("존재하지 않는 데이터입니다.");
@@ -365,7 +371,7 @@ public class ArrangeService extends AdminService {
         }
 
         try {
-            JAXBContext context = JAXBContext.newInstance(MetaDataDto.class);
+            JAXBContext context = JAXBContext.newInstance(Metadata.class);
             Marshaller m = context.createMarshaller();
 
             m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
