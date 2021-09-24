@@ -26,12 +26,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.Array;
 import java.sql.Date;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -57,17 +59,25 @@ public class CreativeSongService extends AdminService {
     }
 
     @PostConstruct
-    public void init () {
+    public void init() {
         this.selectSortField = "songNm";
         this.searchFields = new String[]{"id", "genre", "composerConsortiumNm", "lyricist"};
 
+        this.joinedSortField = new String[]{"composer"};
         this.addRefEntity("composer", "consortiumNm");
 
         super.init();
     }
 
     public PageWrapper getListPage(String regId, String regGroupId, String[] select, int index, int size, String[] sortProperties, String[] keywords, String searchOp, String fromDate, String toDate) throws BackendException {
-        Specification<Object> spec = null;
+
+        Specification<Object> spec = (root, query, cb) -> {
+            Stream<String> result = Arrays.stream(sortProperties).filter(s -> Arrays.stream(this.joinedSortField).anyMatch(s::startsWith));
+            if (result.count() == 0) {
+                query.distinct(true);
+            }
+            return null;
+        };
 
         if (!regGroupId.equals(Integer.toString(CommonConstants.GROUP_ROOT_ID))) {
             if (regGroupId.equals(Integer.toString(CommonConstants.GROUP_CHILL_ROOT_ID))) {
@@ -114,8 +124,8 @@ public class CreativeSongService extends AdminService {
         final AtomicInteger i = new AtomicInteger(1);
 
         result.setList(page.get()
-            .map(ExceptionHandler.wrap(entity -> this.toDto(entity, i.getAndIncrement() + (result.getNumber() * size))))
-            .collect(Collectors.toList())
+                .map(ExceptionHandler.wrap(entity -> this.toDto(entity, i.getAndIncrement() + (result.getNumber() * size))))
+                .collect(Collectors.toList())
         );
 
         return result;
@@ -146,7 +156,7 @@ public class CreativeSongService extends AdminService {
     }
 
 
-    public Object add(Object data, MultipartFile[] files,String userId) throws BackendException {
+    public Object add(Object data, MultipartFile[] files, String userId) throws BackendException {
         CreativeSongDto savedSongDto = (CreativeSongDto) this.save(data);
 
         String filePath = FileUtil.makePath(this.fileBasePath, this.songPath, savedSongDto.getId());
@@ -166,16 +176,16 @@ public class CreativeSongService extends AdminService {
     @Override
     public boolean delete(Object o) {
         Map<String, Object> map = (Map<String, Object>) o;
-        List<Object> deleteObjects =((List<Object>) map.get("data"))
+        List<Object> deleteObjects = ((List<Object>) map.get("data"))
                 .stream()
                 .map(ExceptionHandler.wrap(object -> this.toEntity(object)))
                 .collect(Collectors.toList());
 
         this.repository.deleteAll(deleteObjects);
 
-        List<Map<String,Object>> list = (List<Map<String, Object>>) map.get("data");
+        List<Map<String, Object>> list = (List<Map<String, Object>>) map.get("data");
 
-        for (int i = 0; i < list.size(); i++){
+        for (int i = 0; i < list.size(); i++) {
             String id = list.get(i).get("id").toString();
             String filePath = FileUtil.makePath(this.fileBasePath, this.songPath, id);
 
@@ -185,7 +195,7 @@ public class CreativeSongService extends AdminService {
         return true;
     }
 
-    public byte[] fileDownload(String id,String fileName)  throws BackendException {
+    public byte[] fileDownload(String id, String fileName) throws BackendException {
         String filePath = FileUtil.makePath(this.fileBasePath, this.songPath, id, fileName);
         return FileUtil.download(filePath);
     }
@@ -195,7 +205,7 @@ public class CreativeSongService extends AdminService {
         String outPath = FileUtil.makePath(this.fileBasePath, this.songPath, id);
 
         List<String> fileList = FileUtil.fileList(filePath);
-        File zipFile = FileUtil.compress(outPath,filePath,fileList);
+        File zipFile = FileUtil.compress(outPath, filePath, fileList);
         String zipFilePath = FileUtil.makePath(this.fileBasePath, this.songPath, id, zipFile.getName());
         byte[] zipFileByte = FileUtil.download(zipFilePath);
 
@@ -223,33 +233,31 @@ public class CreativeSongService extends AdminService {
     }
 
 
-
     @Override
     public void importCsv(MultipartFile[] multipartFile, String userId) throws IOException, BackendException {
-        String fileName= multipartFile[0].getOriginalFilename();
+        String fileName = multipartFile[0].getOriginalFilename();
         String ext = FileUtil.getExt(fileName);
         String time = DateTimeFormatter.ofPattern("yyyyMMddhhmmss").format(LocalDateTime.now());
-        String saveFileName = userId +"_"+ time + ".csv";
+        String saveFileName = userId + "_" + time + ".csv";
         if (!ext.equals("csv")) {
             throw new BackendException("지원하지 않는 파일 형식입니다.");
         }
 
 
-
-        String tempPath = FileUtil.makePath(fileBasePath,csvPath,fileTempPath,userId);
-        String savePath = FileUtil.makePath(fileBasePath,csvPath,songPath,userId);
+        String tempPath = FileUtil.makePath(fileBasePath, csvPath, fileTempPath, userId);
+        String savePath = FileUtil.makePath(fileBasePath, csvPath, songPath, userId);
         File file = new File(tempPath + System.getProperty("file.separator") + fileName);
 
         InputStream in = new FileInputStream(file);
         try {
-            CSV csv = new CSV(true, ',', in );
-            List<CreativeSong> songList = new ArrayList < > ();
-            List < String > fieldNames = null;
-            if (csv.hasNext()) fieldNames = new ArrayList < > (csv.next());
+            CSV csv = new CSV(true, ',', in);
+            List<CreativeSong> songList = new ArrayList<>();
+            List<String> fieldNames = null;
+            if (csv.hasNext()) fieldNames = new ArrayList<>(csv.next());
 
             while (csv.hasNext()) {
-                List < String > x = csv.next();
-                if(x.get(0).equals("")){
+                List<String> x = csv.next();
+                if (x.get(0).equals("")) {
                     break;
                 }
                 CreativeSong creativeSong = CreativeSong.builder()
@@ -275,31 +283,31 @@ public class CreativeSongService extends AdminService {
 
             }
             this.repository.saveAll(songList);
-        }finally {
+        } finally {
             in.close();
         }
-        FileUtil.moveCsvFile(savePath,saveFileName,fileName, tempPath);
+        FileUtil.moveCsvFile(savePath, saveFileName, fileName, tempPath);
         getListFileCheck();
     }
 
     @Override
     public Object getListFileCheck() {
 
-        List<CreativeSong> list =  this.repository.findAll();
-        String[] fileCheck = { "guide.wav", "melody.mid", "mix.wav", "mr.wav", "score.mxl", "score.pdf" };
+        List<CreativeSong> list = this.repository.findAll();
+        String[] fileCheck = {"guide.wav", "melody.mid", "mix.wav", "mr.wav", "score.mxl", "score.pdf"};
         List<String> checkList = Arrays.asList(fileCheck);
-        List<CreativeSong> songList = new ArrayList < > ();
+        List<CreativeSong> songList = new ArrayList<>();
 
-        for(int i=0; i<list.size(); i++){
+        for (int i = 0; i < list.size(); i++) {
             List<String> outList = new ArrayList<>();
             String id = list.get(i).getId();
             String filePath = FileUtil.makePath(this.fileBasePath, this.songPath, id);
 
             FileUtil.fileList(filePath).forEach(fileName -> {
-                String[] fileId= fileName.split("_");
-                if(fileId[0].equals(id)){
+                String[] fileId = fileName.split("_");
+                if (fileId[0].equals(id)) {
 
-                    for(String filed : fileCheck){
+                    for (String filed : fileCheck) {
                         if (fileName.contains(filed)) {
                             outList.add(filed);
                         }
@@ -307,24 +315,24 @@ public class CreativeSongService extends AdminService {
                 }
             });
             CreativeSong creativeSong = CreativeSong.builder()
-                .id(list.get(i).getId())
-                .composerCd(list.get(i).getComposerCd())
-                .genre(list.get(i).getGenre())
-                .songNm(list.get(i).getSongNm())
-                .songLength(list.get(i).getSongLength())
-                .tonality(list.get(i).getTonality())
-                .tempo(list.get(i).getTempo())
-                .vibe(list.get(i).getVibe())
-                .instrumentCd(list.get(i).getInstrumentCd())
-                .referenceSong(list.get(i).getReferenceSong())
-                .referenceArtist(list.get(i).getReferenceArtist())
-                .createDate(list.get(i).getCreateDate())
-                .importYn(list.get(i).getImportYn())
-                .status(outList.containsAll(checkList) != true? "0" : "1")
-                .regId(list.get(i).getRegId())
-                .modId(list.get(i).getModId())
-                .build();
-                songList.add(creativeSong);
+                    .id(list.get(i).getId())
+                    .composerCd(list.get(i).getComposerCd())
+                    .genre(list.get(i).getGenre())
+                    .songNm(list.get(i).getSongNm())
+                    .songLength(list.get(i).getSongLength())
+                    .tonality(list.get(i).getTonality())
+                    .tempo(list.get(i).getTempo())
+                    .vibe(list.get(i).getVibe())
+                    .instrumentCd(list.get(i).getInstrumentCd())
+                    .referenceSong(list.get(i).getReferenceSong())
+                    .referenceArtist(list.get(i).getReferenceArtist())
+                    .createDate(list.get(i).getCreateDate())
+                    .importYn(list.get(i).getImportYn())
+                    .status(outList.containsAll(checkList) != true ? "0" : "1")
+                    .regId(list.get(i).getRegId())
+                    .modId(list.get(i).getModId())
+                    .build();
+            songList.add(creativeSong);
 
         }
 
