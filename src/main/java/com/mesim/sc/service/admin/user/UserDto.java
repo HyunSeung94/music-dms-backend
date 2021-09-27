@@ -29,6 +29,7 @@ public class UserDto extends AdminDto {
     private String pwModDate;
     private String imgSrc;
     private String imgBase64Str;
+    private String initial;
 
     private boolean isPasswordEncoded;
 
@@ -41,6 +42,7 @@ public class UserDto extends AdminDto {
         this.authorityId = entity.getAuthorityId();
         this.authorityNm = entity.getAuthority() != null ? entity.getAuthority().getName() : null;
         this.name = entity.getName();
+        this.initial = entity.getInitial();
         this.password = entity.getPassword();
         this.status = entity.getStatus();
         this.email = entity.getEmail();
@@ -73,6 +75,7 @@ public class UserDto extends AdminDto {
                 .groupId(this.groupId)
                 .authorityId(this.authorityId)
                 .name(this.name)
+                .initial(this.initial)
                 .password(this.password == null ? null : this.isPasswordEncoded ? this.password : PwEncoder.encode(this.password))
                 .status(this.status)
                 .email(this.email)
