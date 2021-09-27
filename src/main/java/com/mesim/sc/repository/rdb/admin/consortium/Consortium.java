@@ -45,6 +45,8 @@ public class Consortium {
     @Column(name = "GENDER")
     protected String gender;
 
+    @Column(name = "INITIAL")
+    protected String initial;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @NotFound(action = NotFoundAction.IGNORE)
@@ -69,7 +71,8 @@ public class Consortium {
             String ageRange,
             String toneColor,
             String gender,
-            String level
+            String level,
+            String initial
     ) {
         this.id = id;
         this.groupId = groupId;
@@ -82,6 +85,7 @@ public class Consortium {
         this.toneColor = toneColor;
         this.gender = gender;
         this.level = level;
+        this.initial = initial;
     }
 
 }
