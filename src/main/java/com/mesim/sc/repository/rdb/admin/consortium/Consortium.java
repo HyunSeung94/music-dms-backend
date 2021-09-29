@@ -1,10 +1,13 @@
 package com.mesim.sc.repository.rdb.admin.consortium;
 
+import com.mesim.sc.repository.rdb.admin.code.Code;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.*;
 
 import javax.persistence.*;
+import javax.persistence.Entity;
 
 @NoArgsConstructor
 @Getter
@@ -42,6 +45,17 @@ public class Consortium {
     @Column(name = "GENDER")
     protected String gender;
 
+    @Column(name = "INITIAL")
+    protected String initial;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @NotFound(action = NotFoundAction.IGNORE)
+    @JoinColumnsOrFormulas({
+            @JoinColumnOrFormula(column = @JoinColumn(name = "ARG_RANGE", referencedColumnName = "CD", insertable = false, updatable = false)),
+            @JoinColumnOrFormula(formula = @JoinFormula(value = "'ARGRANGE'", referencedColumnName = "TYPE_CD"))
+    })
+    private Code codeArgRange;
+
     @Column(name = "LEVEL")
     protected String level;
 
@@ -57,7 +71,8 @@ public class Consortium {
             String ageRange,
             String toneColor,
             String gender,
-            String level
+            String level,
+            String initial
     ) {
         this.id = id;
         this.groupId = groupId;
@@ -70,6 +85,7 @@ public class Consortium {
         this.toneColor = toneColor;
         this.gender = gender;
         this.level = level;
+        this.initial = initial;
     }
 
 }

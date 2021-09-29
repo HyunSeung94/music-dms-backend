@@ -20,7 +20,7 @@ public class ScApplication {
 	public CommonsMultipartResolver commonsMultipartResolver() {
 		final CommonsMultipartResolver commonsMultipartResolver = new CommonsMultipartResolver();
 		commonsMultipartResolver.setDefaultEncoding("UTF-8");
-		commonsMultipartResolver.setMaxUploadSize(100000000);
+		commonsMultipartResolver.setMaxUploadSize(1000000000);
 		return commonsMultipartResolver;
 	}
 }

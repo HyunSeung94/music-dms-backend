@@ -32,6 +32,9 @@ public class User extends CrudEntity {
     @Column(name = "PASSWORD")
     private String password;
 
+    @Column(name = "STATUS")
+    private String status;
+
     @Column(name = "EMAIL")
     private String email;
 
@@ -62,6 +65,10 @@ public class User extends CrudEntity {
     @Column(name = "IMG_SRC")
     private String imgSrc;
 
+    @Column(name = "INITIAL")
+    protected String initial;
+
+
     @ManyToOne(fetch = FetchType.EAGER)
     @NotFound(action = NotFoundAction.IGNORE)
     @JoinColumn(name="GROUP_ID", referencedColumnName="GROUP_ID", insertable = false, updatable = false)
@@ -78,7 +85,9 @@ public class User extends CrudEntity {
             int groupId,
             int authorityId,
             String name,
+            String initial,
             String password,
+            String status,
             String email,
             String phone,
             String mobile,
@@ -100,9 +109,11 @@ public class User extends CrudEntity {
         this.name = name;
         this.password = password;
         this.email = email;
+        this.status = status;
         this.phone = phone;
         this.mobile = mobile;
         this.zipCode = zipCode;
+        this.initial = initial;
         this.address = address;
         this.rmk = rmk;
         this.pwTry = pwTry;

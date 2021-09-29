@@ -7,7 +7,10 @@ import com.mesim.sc.exception.BackendException;
 import com.mesim.sc.exception.ExceptionHandler;
 import com.mesim.sc.repository.rdb.CrudRepository;
 import com.mesim.sc.repository.PageWrapper;
+import com.mesim.sc.repository.rdb.admin.AdminSpecs;
+import com.mesim.sc.repository.rdb.admin.code.Code;
 import com.mesim.sc.repository.rdb.admin.song.CreativeSong;
+import com.mesim.sc.service.admin.vocal.VocalDto;
 import com.mesim.sc.util.CSV;
 import com.mesim.sc.util.DataTypeUtil;
 import com.mesim.sc.util.DateUtil;
@@ -847,13 +850,12 @@ public abstract class CrudService {
         } finally {
             File file = new File(csvFile);
 
-            if (file.exists()) {
-                new File(csvFile).delete();
-            }
-
             try {
                 if (bw != null) {
                     bw.close();
+                    if (file.exists()) {
+                        file.delete();
+                    }
                 }
                 if (printer != null) {
                     printer.close();
@@ -1571,6 +1573,50 @@ public abstract class CrudService {
         return list;
     }
 
+    /**
+     * 장르별 통계 쿼리 조회
+     * @param select
+     * @param groupItem
+     * @param table
+     * @return
+     * @throws BackendException
+     */
+    public List<Object> getRowGenre(String select, String groupItem, String  table,String where) throws BackendException {
+        String[] selectList = select.split(",");
+        String[] selectStandardList = groupItem.split(",");
+        String selectItem = "";
+        where = "";
+
+        List<Object> list = new ArrayList<>();
+        try {
+            for (int i = 0; i < selectStandardList.length; i++) {
+                selectItem = "";
+                for (int j = 0; j < selectList.length; j++) {
+
+                    if(selectList[j].equals("DANCE")){
+                        selectItem += "count (CASE WHEN genre='댄스' THEN 1 END) AS DANCE";
+                    }else if(selectList[j].equals("BALLADE")){
+                        selectItem += "count (CASE WHEN genre='발라드' THEN 1 END) AS BALLADE";
+                    }else if(selectList[j].equals("AGITATION")){
+                        selectItem += "count (CASE WHEN genre='동요' THEN 1 END) AS AGITATION";
+                    }
+
+                    if (j != selectList.length - 1) {
+                        selectItem += ",";
+                    }
+                }
+                String jpql = "SELECT " + selectItem + " FROM " + table + where;
+                Query query = entityManager.createQuery(jpql, Object[].class);
+                query.getResultList().forEach(d -> list.add(d));
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            throw new BackendException("Query 조회 중 오류발생, " + e.getMessage());
+        }
+        return list;
+    }
+
+
     public List<Object> getSelectGroup(String select, String where, String  table) throws BackendException {
         String selectItem = select.replace('#', ',');
         String groupItem = select.replace('#', ',');
@@ -1633,6 +1679,57 @@ public abstract class CrudService {
      */
     public Object getListFileCheck() {
         return null;
+    }
+
+    public List<List<Object>> getAgeRangeCdSelect() throws BackendException {
+//        Specification<Object> spec = null;
+//        spec = AdminSpecs.typeCd("ARGRANGE");
+//
+//        List<Code> codeList = this.codeRepository.findAll(spec);
+//        String[] select = new String[codeList.size()];
+//
+//        int index = 0;
+//        for (Code code : codeList) {
+//            select[index] = code.getCd();
+//            index++;
+//        }
+
+        List<Object> list = this.repository.findAll();
+        final AtomicInteger num = new AtomicInteger(1);
+
+        list = list.stream().map(ExceptionHandler.wrap(entity -> this.toDto(entity, num.getAndIncrement())))
+                .collect(Collectors.toList());
+
+        List<List<Object>> resultList = new ArrayList<>();
+        List<Object> list01 = new ArrayList<>();
+        List<Object> list02 = new ArrayList<>();
+        List<Object> list03 = new ArrayList<>();
+        List<Object> list04 = new ArrayList<>();
+        for (int i = 0; i < list.size(); i++) {
+            VocalDto dto = (VocalDto) list.get(i);
+
+            switch (dto.getAgeRangeCd()) {
+                case "01":
+                    list01.add(dto);
+                    break;
+                case "02":
+                    list02.add(dto);
+                    break;
+                case "03":
+                    list03.add(dto);
+                    break;
+                case "04":
+                    list04.add(dto);
+                    break;
+            }
+        }
+
+        resultList.add(list01);
+        resultList.add(list02);
+        resultList.add(list03);
+        resultList.add(list04);
+
+        return resultList;
     }
 
 }

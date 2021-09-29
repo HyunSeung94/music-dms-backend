@@ -31,6 +31,24 @@ public class AdminSpecs {
         return (Specification<Object>) (root, query, cb) -> cb.equal(root.get("typeCd"), typeCd);
     }
 
+    public static Specification<Object> ageRangeCd(String ageRangeCd) {
+        return (Specification<Object>) (root, query, cb) -> cb.equal(root.get("ageRangeCd"), ageRangeCd);
+    }
+
+    public static Specification<Object> ageRangeCdList(String[] select) {
+        Specification<Object> spec = null;
+
+        for (String s : select) {
+            String value = s;
+            Specification<Object> finalSpec = spec;
+
+            spec = spec == null ?
+                    (Specification<Object>) (root, query, cb) -> cb.equal(root.get("ageRangeCd"), value) :
+                    Specification.where((root, query, cb) -> cb.equal(root.get("ageRangeCd"), value)).and(finalSpec);
+        }
+        return spec;
+    }
+
     public static Specification<Object> inspectionCd(String typeCd) {
         return (Specification<Object>) (root, query, cb) -> cb.equal(root.get("inspection_cd"), typeCd);
     }

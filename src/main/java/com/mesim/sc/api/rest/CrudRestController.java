@@ -3,6 +3,7 @@ package com.mesim.sc.api.rest;
 import com.mesim.sc.api.ApiResponseDto;
 import com.mesim.sc.exception.BackendException;
 import com.mesim.sc.service.CrudService;
+import com.mesim.sc.service.admin.vocal.VocalService;
 import com.mesim.sc.util.FileUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -481,6 +482,27 @@ public abstract class CrudRestController {
         }
     }
 
+    /***
+     * 장르별 통계 쿼리 조회
+     * @param select
+     * @param groupItem
+     * @param where
+     * @param table
+     * @return
+     * @throws BackendException
+     */
+    @RequestMapping(value = "getRowGenre", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ApiResponseDto getRowGenre(@RequestParam(value = "select", required = false) String select,
+                                      @RequestParam(value = "groupItem", required = false) String groupItem,
+                                      @RequestParam(value = "where", required = false) String where,
+                                      @RequestParam(value = "table") String table) throws BackendException {
+        try {
+            return new ApiResponseDto(true, this.service.getRowGenre(select, groupItem, table, where));
+        } catch (Exception e) {
+            throw new BackendException(this.name + " 쿼리 생성 조회 중 오류발생", e);
+        }
+    }
+
     /**
      * 위젯에서 기간별을 통한 데이터 조회
      * @param select
@@ -581,6 +603,20 @@ public abstract class CrudRestController {
     public ApiResponseDto fileCheck() throws BackendException {
         try {
             return new ApiResponseDto(true, this.service.getListFileCheck());
+        } catch (Exception e) {
+            throw new BackendException(this.name + " 쿼리 생성 조회 중 오류발생", e);
+        }
+    }
+
+    /**
+     *
+     * @return
+     * @throws BackendException
+     */
+    @RequestMapping(value = "getAgeRangeCdSelect", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ApiResponseDto getAgeRangeCdSelect() throws BackendException {
+        try {
+            return new ApiResponseDto(true, this.service.getAgeRangeCdSelect());
         } catch (Exception e) {
             throw new BackendException(this.name + " 쿼리 생성 조회 중 오류발생", e);
         }

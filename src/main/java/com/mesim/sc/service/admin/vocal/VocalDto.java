@@ -22,6 +22,7 @@ public class VocalDto extends AdminDto {
     private String toneColor;
     private String gender;
     private String ageRange;
+    private String ageRangeCd;
     private String recordLength;
     private String recordDate;
     private String recordInspection;
@@ -53,7 +54,8 @@ public class VocalDto extends AdminDto {
             this.level = entity.getSinger().getLevel();
             this.toneColor = entity.getSinger().getToneColor();
             this.gender = entity.getSinger().getGender();
-            this.ageRange = entity.getSinger().getAgeRange();
+            this.ageRange = entity.getSinger().getCodeArgRange().getName();
+            this.ageRangeCd = entity.getSinger().getAgeRange();
         }
         this.recordLength = entity.getRecordLength();
         this.recordDate = DateUtil.toFormat_yyyyMMdd(entity.getRecordDate().getTime());

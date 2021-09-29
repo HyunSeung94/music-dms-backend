@@ -4,6 +4,7 @@ import com.mesim.sc.repository.rdb.admin.arrange.Arrange;
 import com.mesim.sc.repository.rdb.admin.song.CreativeSong;
 import com.mesim.sc.repository.rdb.admin.vocal.Vocal;
 import com.mesim.sc.service.admin.AdminDto;
+import com.mesim.sc.util.CSV;
 import com.mesim.sc.util.DateUtil;
 import lombok.Data;
 
@@ -29,9 +30,9 @@ public class ArrangeInfo{
     public ArrangeInfo(Arrange arrange) {
 
         this.labeller_code = arrange.getArrangerCd();
-        this.labeller_name = arrange.getArranger().getConsortiumNm();
+        this.labeller_name =  arrange.getArranger().getInitial();
         this.labelling_date = DateUtil.toFormat_yyyyMMdd(arrange.getArrangeDate().getTime());
-        this.labelling_checker = arrange.getModId();
+        this.labelling_checker =  arrange.getModUser().getInitial();
     }
 
 }

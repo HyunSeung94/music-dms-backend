@@ -7,12 +7,15 @@ import com.mesim.sc.repository.PageWrapper;
 import com.mesim.sc.repository.rdb.CrudRepository;
 import com.mesim.sc.repository.rdb.admin.AdminSpecs;
 import com.mesim.sc.repository.rdb.admin.arrange.Arrange;
+import com.mesim.sc.repository.rdb.admin.code.Code;
 import com.mesim.sc.repository.rdb.admin.song.CreativeSong;
 import com.mesim.sc.repository.rdb.admin.song.CreativeSongRepository;
 import com.mesim.sc.repository.rdb.admin.vocal.Vocal;
 import com.mesim.sc.repository.rdb.admin.vocal.VocalRepository;
 import com.mesim.sc.service.admin.AdminService;
-import com.mesim.sc.service.admin.metadata.MetaDataDto;
+import com.mesim.sc.service.admin.code.CodeService;
+import com.mesim.sc.service.admin.metadata.Metadata;
+import com.mesim.sc.service.admin.vocal.VocalDto;
 import com.mesim.sc.service.admin.vocal.VocalService;
 import com.mesim.sc.util.CSV;
 import com.mesim.sc.util.FileUtil;
@@ -28,7 +31,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import java.io.*;
 import java.sql.Date;
@@ -37,6 +39,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -66,10 +69,14 @@ public class ArrangeService extends AdminService {
     private VocalService vocalService;
 
     @Autowired
+    private CodeService codeService;
+
+    @Autowired
     private VocalRepository vocalRepository;
 
     @Autowired
     private CreativeSongRepository creativeSongRepository;
+
 
     @Autowired
     @Qualifier("arrangeRepository")
@@ -89,7 +96,13 @@ public class ArrangeService extends AdminService {
     }
 
     public PageWrapper getListPage(String regId, String regGroupId, String[] select, int index, int size, String[] sortProperties, String[] keywords, String searchOp, String fromDate, String toDate) throws BackendException {
-        Specification<Object> spec = null;
+        Specification<Object> spec = (root, query, cb) -> {
+            Stream<String> result = Arrays.stream(sortProperties).filter(s -> Arrays.stream(this.joinedSortField).anyMatch(s::startsWith));
+            if (result.count() == 0) {
+                query.distinct(true);
+            }
+            return null;
+        };
 
         if (!regGroupId.equals(Integer.toString(CommonConstants.GROUP_ROOT_ID))) {
             if (regGroupId.equals(Integer.toString(CommonConstants.GROUP_CHILL_ROOT_ID))) {
@@ -344,14 +357,16 @@ public class ArrangeService extends AdminService {
         Optional<Arrange>  arrange = this.repository.findById(id);
         Optional<Vocal>  vocal = this.vocalRepository.findById(id);
         Optional<CreativeSong>  song = this.creativeSongRepository.findById(vocal.get().getSongCd());
+        String[][] select = {{"VIBE"},{"STUDIO"},{"ARGRANGE"}};
+        List<List<Object>> result = this.codeService.getListMultiSelect(select);
 
-        MetaDataDto metaData;
+
+        Metadata metaData;
         ArrangeDto data;
         data = (ArrangeDto) get(id);
 
         if (song.isPresent() && arrange.isPresent() && vocal.isPresent()) {
-            metaData = new MetaDataDto(song.get(),vocal.get(),arrange.get(),data.getFileList());
-
+            metaData = new Metadata(song.get(),vocal.get(),arrange.get(),data.getFileList(),result);
 
         }  else {
             throw new BackendException("존재하지 않는 데이터입니다.");
@@ -365,7 +380,7 @@ public class ArrangeService extends AdminService {
         }
 
         try {
-            JAXBContext context = JAXBContext.newInstance(MetaDataDto.class);
+            JAXBContext context = JAXBContext.newInstance(Metadata.class);
             Marshaller m = context.createMarshaller();
 
             m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
@@ -381,6 +396,104 @@ public class ArrangeService extends AdminService {
         }
 
         return metaData;
+    }
+
+    public String verificationApi() throws BackendException {
+        List<Object> list = this.repository.findAll();
+        final AtomicInteger num = new AtomicInteger(1);
+        list = list.stream().map(ExceptionHandler.wrap(entity -> this.toDto(entity, num.getAndIncrement())))
+                .collect(Collectors.toList());
+
+
+        for (int i = 0; i < list.size(); i++) {
+
+            ArrangeDto dto = (ArrangeDto) list.get(i);
+            String id = dto.getId();
+
+            Optional<Arrange>  arrange = this.repository.findById(id);
+            Optional<Vocal>  vocal = this.vocalRepository.findById(id);
+            Optional<CreativeSong>  song = this.creativeSongRepository.findById(vocal.get().getSongCd());
+            String[][] select = {{"VIBE"},{"STUDIO"},{"ARGRANGE"}};
+            List<List<Object>> result = this.codeService.getListMultiSelect(select);
+
+
+            Metadata metaData;
+            ArrangeDto data;
+            data = (ArrangeDto) get(id);
+
+            if (song.isPresent() && arrange.isPresent() && vocal.isPresent()) {
+                metaData = new Metadata(song.get(),vocal.get(),arrange.get(),data.getFileList(),result);
+
+            }  else {
+                throw new BackendException("존재하지 않는 데이터입니다.");
+            }
+
+
+            try {
+                JAXBContext context = JAXBContext.newInstance(Metadata.class);
+                Marshaller m = context.createMarshaller();
+
+                m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+
+                StringWriter sw = new StringWriter();
+                m.marshal(metaData, sw);
+                String xmlStr = sw.toString();
+                String xmlFileName=id+"_"+"adata.xml";
+                FileUtil.strToFile(FileUtil.makePath(this.fileBasePath, this.vocalPath, id), xmlFileName, xmlStr);
+
+            } catch (Exception e) {
+                throw new BackendException("XML 파일 업로드 중 오류 발생", e);
+            }
+        }
+
+        return "ok";
+    }
+
+    /**
+     *
+     * @return
+     * @throws BackendException
+     */
+    @Override
+    public List<List<Object>> getAgeRangeCdSelect() throws BackendException {
+
+
+        List<Object> list = this.repository.findAll();
+        final AtomicInteger num = new AtomicInteger(1);
+
+        list = list.stream().map(ExceptionHandler.wrap(entity -> this.toDto(entity, num.getAndIncrement())))
+                .collect(Collectors.toList());
+
+        List<List<Object>> resultList = new ArrayList<>();
+        List<Object> list01 = new ArrayList<>();
+        List<Object> list02 = new ArrayList<>();
+        List<Object> list03 = new ArrayList<>();
+        List<Object> list04 = new ArrayList<>();
+        for (int i = 0; i < list.size(); i++) {
+            ArrangeDto dto = (ArrangeDto) list.get(i);
+
+            switch (dto.getAgeRange()) {
+                case "01":
+                    list01.add(dto);
+                    break;
+                case "02":
+                    list02.add(dto);
+                    break;
+                case "03":
+                    list03.add(dto);
+                    break;
+                case "04":
+                    list04.add(dto);
+                    break;
+            }
+        }
+
+        resultList.add(list01);
+        resultList.add(list02);
+        resultList.add(list03);
+        resultList.add(list04);
+
+        return resultList;
     }
 
 }

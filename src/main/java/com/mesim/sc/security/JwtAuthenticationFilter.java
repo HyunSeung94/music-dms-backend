@@ -60,6 +60,10 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                 this.userConnectService.save(userId, CodeConstants.CONN_LOGIN, HttpUtil.getIP(request), CodeConstants.CONN_ERR_INFO);
                 response.setStatus(HttpStatus.SC_NOT_ACCEPTABLE);
                 return null;
+            }else if(userInfo.getStatus().equals("N")){
+                this.userConnectService.save(userId, CodeConstants.CONN_LOGIN, HttpUtil.getIP(request), CodeConstants.CONN_ERR_INFO);
+                response.setStatus(HttpStatus.SC_METHOD_NOT_ALLOWED);
+                return null;
             }
 
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userId, password);
