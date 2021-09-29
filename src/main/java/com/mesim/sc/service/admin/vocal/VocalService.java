@@ -6,6 +6,8 @@ import com.mesim.sc.exception.ExceptionHandler;
 import com.mesim.sc.repository.PageWrapper;
 import com.mesim.sc.repository.rdb.CrudRepository;
 import com.mesim.sc.repository.rdb.admin.AdminSpecs;
+import com.mesim.sc.repository.rdb.admin.code.Code;
+import com.mesim.sc.repository.rdb.admin.code.CodeRepository;
 import com.mesim.sc.repository.rdb.admin.song.CreativeSong;
 import com.mesim.sc.repository.rdb.admin.song.CreativeSongRepository;
 import com.mesim.sc.repository.rdb.admin.vocal.Vocal;
@@ -65,6 +67,9 @@ public class VocalService extends AdminService {
 
     @Autowired
     private CreativeSongRepository creativeSongRepository;
+
+    @Autowired
+    private CodeRepository codeRepository;
 
     @Autowired
     @Qualifier("vocalRepository")
@@ -287,7 +292,7 @@ public class VocalService extends AdminService {
         String fileName = multipartFile[0].getOriginalFilename();
         String ext = FileUtil.getExt(fileName);
         String time = DateTimeFormatter.ofPattern("yyyyMMddhhmmss").format(LocalDateTime.now());
-        String saveFileName = userId +"_"+ time + ".csv";
+        String saveFileName = userId + "_" + time + ".csv";
         if (!ext.equals("csv")) {
             throw new BackendException("지원하지 않는 파일 형식입니다.");
         }
@@ -297,7 +302,7 @@ public class VocalService extends AdminService {
         File file = new File(tempPath + System.getProperty("file.separator") + fileName);
 
         InputStream in = new FileInputStream(file);
-        try  {
+        try {
 
             CSV csv = new CSV(true, ',', in);
             List<Vocal> vocalList = new ArrayList<>();
@@ -311,12 +316,12 @@ public class VocalService extends AdminService {
                 }
 
                 Optional<CreativeSong> resultSong = creativeSongRepository.findById(x.get(1));
-                if(resultSong.isPresent()){
+                if (resultSong.isPresent()) {
                     if (resultSong.get().getStatus().equals("0")) {
                         throw new BackendException("창작곡 파일이 없습니다..");
                     }
-                }else{
-                    throw new BackendException(x.get(1)+"의 창작곡이 없습니다..");
+                } else {
+                    throw new BackendException(x.get(1) + "의 창작곡이 없습니다..");
                 }
 
                 Vocal vocal = Vocal.builder()
@@ -340,10 +345,10 @@ public class VocalService extends AdminService {
             }
             this.repository.saveAll(vocalList);
 
-        }finally {
+        } finally {
             in.close();
         }
-        FileUtil.moveCsvFile(savePath,saveFileName,fileName, tempPath);
+        FileUtil.moveCsvFile(savePath, saveFileName, fileName, tempPath);
         getListFileCheck();
     }
 
@@ -373,21 +378,21 @@ public class VocalService extends AdminService {
             });
 
             Vocal vocal = Vocal.builder()
-                .id(list.get(i).getId())
-                .songCd(list.get(i).getSongCd())
-                .singerCd(list.get(i).getSingerCd())
-                .recordLength(list.get(i).getRecordLength())
-                .recordDate(list.get(i).getRecordDate())
-                .vibe(list.get(i).getVibe())
-                .studioCd(list.get(i).getStudioCd())
-                .micNm(list.get(i).getMicNm())
-                .audioIfNm(list.get(i).getAudioIfNm())
-                .importYn(list.get(i).getImportYn())
-                .status(outList.containsAll(checkList) != true? "0" : "1")
-                .regId(list.get(i).getRegId())
-                .modId(list.get(i).getModId())
-                .build();
-                vocalList.add(vocal);
+                    .id(list.get(i).getId())
+                    .songCd(list.get(i).getSongCd())
+                    .singerCd(list.get(i).getSingerCd())
+                    .recordLength(list.get(i).getRecordLength())
+                    .recordDate(list.get(i).getRecordDate())
+                    .vibe(list.get(i).getVibe())
+                    .studioCd(list.get(i).getStudioCd())
+                    .micNm(list.get(i).getMicNm())
+                    .audioIfNm(list.get(i).getAudioIfNm())
+                    .importYn(list.get(i).getImportYn())
+                    .status(outList.containsAll(checkList) != true ? "0" : "1")
+                    .regId(list.get(i).getRegId())
+                    .modId(list.get(i).getModId())
+                    .build();
+            vocalList.add(vocal);
         }
 
         this.repository.saveAll(vocalList);

@@ -30,9 +30,9 @@ public class ArrangeInfo{
     public ArrangeInfo(Arrange arrange) {
 
         this.labeller_code = arrange.getArrangerCd();
-        this.labeller_name =  CSV.translate(arrange.getArranger().getConsortiumNm());
+        this.labeller_name =  arrange.getArranger().getInitial();
         this.labelling_date = DateUtil.toFormat_yyyyMMdd(arrange.getArrangeDate().getTime());
-        this.labelling_checker =  CSV.translate(arrange.getModUser().getName());
+        this.labelling_checker =  arrange.getModUser().getInitial();
     }
 
 }

@@ -295,4 +295,33 @@ public class CSV
 //        System.out.println("알파벳   : " + resultEng);
         return resultEng;
     }
+
+    public static void main(String[] args) {
+//        String[] arrChoSungEng = {"K", "n", "d","r", "m", "B", "s", "a", "j", "c", "k", "t", "p", "h"};
+        String[] arrChoSungEng  = {"K", "G", "N", "D", "D", "R", "M", "B", "B", "S","S","Y", "J", "J","C", "C", "T", "P", "H"};
+
+        String word = "김용안";  // 분리할 단어
+        String resultEng = "";    // 알파벳으로
+
+        for (int i = 0; i < word.length(); i++) {
+            /*  한글자씩 읽어들인다. */
+            char chars = (char) (word.charAt(i) - 0xAC00);
+            if (chars >= 0 && chars <= 11172) {
+                /* A. 자음과 모음이 합쳐진 글자인경우 */
+                /* A-1. 초/중/종성 분리 */
+                int chosung = chars / (21 * 28);
+
+                /* 알파벳으로 */
+                resultEng = resultEng + arrChoSungEng[chosung];
+                System.out.println("============ 1 ==========");
+            } else {
+                /* 알파벳인 경우 */
+                resultEng = resultEng + ((char) (chars + 0xAC00));
+                System.out.println("============ 2 ==========");
+            }
+        }
+        System.out.println("============ result ==========");
+        System.out.println("단어     : " + word);
+        System.out.println("알파벳   : " + resultEng);
+    }
 }

@@ -43,19 +43,20 @@ public class VocalInfo {
     public VocalInfo(Vocal vocal, List<List<Object>> codeList) {
         this.singer_code = vocal.getSingerCd();
         if (vocal.getSinger() != null) {
-            this.singer_name = CSV.translate(vocal.getSinger().getConsortiumNm());
+            this.singer_name = vocal.getSinger().getInitial();
             this.singer_role = vocal.getSinger().getRole();
             this.singer_level = vocal.getSinger().getLevel();
             this.singer_tone_color = vocal.getSinger().getToneColor();
             this.singer_gender = vocal.getSinger().getGender();
-            this.singer_age_range = vocal.getSinger().getAgeRange();
+//            this.singer_age_range = vocal.getSinger().getAgeRange();
+            this.singer_age_range = getArgRange(vocal.getSinger().getAgeRange(),codeList);
         }
         this.lyric_length = vocal.getRecordLength();
         this.studio = getStudio(vocal.getStudioCd(), codeList);
         this.mic = vocal.getMicNm();
         this.audio_interface = vocal.getAudioIfNm();
         this.record_date = DateUtil.toFormat_yyyyMMdd(vocal.getRecordDate().getTime());
-        this.record_checker = CSV.translate(vocal.getModUser().getName());
+        this.record_checker = vocal.getModUser().getInitial();
     }
 
     public String getStudio(String cd, List<List<Object>> codeList) {
@@ -65,6 +66,24 @@ public class VocalInfo {
             String id = cds[i];
             for (int j = 0; j < codeList.get(1).size(); j++) {
                 CodeDto codeDto = (CodeDto) codeList.get(1).get(j);
+                if (id.equals(codeDto.getCd())) {
+                    result += codeDto.getName();
+                    if (i != cds.length - 1) {
+                        result += ",";
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    public String getArgRange(String cd, List<List<Object>> codeList) {
+        String[] cds = cd.split(",");
+        String result = "";
+        for (int i=0; i<cds.length; i++) {
+            String id = cds[i];
+            for (int j = 0; j < codeList.get(2).size(); j++) {
+                CodeDto codeDto = (CodeDto) codeList.get(2).get(j);
                 if (id.equals(codeDto.getCd())) {
                     result += codeDto.getName();
                     if (i != cds.length - 1) {

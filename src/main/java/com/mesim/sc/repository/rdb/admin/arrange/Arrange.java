@@ -3,6 +3,7 @@ package com.mesim.sc.repository.rdb.admin.arrange;
 import com.mesim.sc.repository.rdb.CrudEntity;
 import com.mesim.sc.repository.rdb.admin.consortium.Consortium;
 import com.mesim.sc.repository.rdb.admin.user.User;
+import com.mesim.sc.repository.rdb.admin.vocal.Vocal;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -45,6 +46,11 @@ public class Arrange extends CrudEntity {
 
     @Column(name = "STATUS")
     private String status;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @NotFound(action = NotFoundAction.IGNORE)
+    @JoinColumn(name = "CONTENTS_CD", referencedColumnName = "CONTENTS_CD", insertable = false, updatable = false)
+    private Vocal vocal;
 
     @Builder
     public Arrange(String id,  String arrangerCd, Date arrangeDate,String importYn,String status, String regId, String modId) {

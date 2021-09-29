@@ -29,7 +29,7 @@ public class ConsortiumService extends AdminService {
 
     @PostConstruct
     public void init () {
-        this.selectField = "groupId";
+        this.selectField = "ageRange";
         this.selectSortField = "consortiumNm";
 
         super.init();

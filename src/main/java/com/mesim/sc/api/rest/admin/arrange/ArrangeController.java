@@ -132,4 +132,17 @@ public class ArrangeController extends AdminRestController {
         }
     }
 
+
+    /**
+     * 검증
+     *
+     */
+    @RequestMapping(value = "verificationApi", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ApiResponseDto verification() throws BackendException {
+        try {
+            return new ApiResponseDto(true, ((ArrangeService) service).verificationApi());
+        } catch (Exception e) {
+            throw new BackendException(this.name + " 검증 중 오류발생", e);
+        }
+    }
 }

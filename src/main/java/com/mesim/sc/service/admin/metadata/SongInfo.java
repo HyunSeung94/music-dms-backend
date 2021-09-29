@@ -49,15 +49,13 @@ public class SongInfo {
         this.song_create_code = song.getId();
         this.song_title = song.getSongNm();
         this.composer_code = song.getComposerCd();
-        this.composer_name = song.getComposer() != null ? CSV.translate(song.getComposer().getConsortiumNm()) : null;
+        this.composer_name = song.getComposer() != null ? song.getComposer().getInitial() : null;
         this.create_date = DateUtil.toFormat_yyyyMMdd(song.getCreateDate().getTime());
         this.tempo = song.getTempo();
         this.tonality = song.getTonality();
         this.genre = song.getGenre();
         this.songLength = song.getSongLength();
-
         this.vibe = getVibe(song.getVibe(), codeList);
-//        this.vibe = song.getVibe();
         this.reference_artist = song.getReferenceArtist();
         this.reference_song = song.getReferenceSong();
         if (song.getInstrumentCd() != null) {
@@ -75,7 +73,7 @@ public class SongInfo {
                 }
             }
         }
-        this.song_create_checker = CSV.translate(song.getModUser().getName());
+        this.song_create_checker = song.getModUser().getInitial();
     }
 
     public String getVibe(String cd, List<List<Object>> codeList) {
@@ -95,5 +93,7 @@ public class SongInfo {
         }
         return result;
     }
+
+
 
 }

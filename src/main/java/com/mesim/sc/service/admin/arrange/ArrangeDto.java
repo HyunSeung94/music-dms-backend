@@ -21,6 +21,7 @@ public class ArrangeDto extends AdminDto {
     private String arrangerNm;
     private String arrangerRole;
     private String arrangeDate;
+    private String ageRange;
     private String regNm;
     private String regGroupNm;
     private String importYn;
@@ -35,6 +36,10 @@ public class ArrangeDto extends AdminDto {
         if (entity.getArranger() != null) {
             this.arrangerNm = entity.getArranger().getConsortiumNm();
             this.arrangerRole = entity.getArranger().getRole();
+
+        }
+        if(entity.getVocal().getSinger() != null){
+            this.ageRange = entity.getVocal().getSinger().getAgeRange();
         }
         this.arrangeDate = DateUtil.toFormat_yyyyMMdd(entity.getArrangeDate().getTime());
         this.importYn = entity.getImportYn();
