@@ -145,4 +145,18 @@ public class ArrangeController extends AdminRestController {
             throw new BackendException(this.name + " 검증 중 오류발생", e);
         }
     }
+
+    /**
+     * 검증
+     *
+     */
+    @RequestMapping(value = "getCompletedArrange", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ApiResponseDto getCompletedArrange() throws BackendException {
+        try {
+            return new ApiResponseDto(true, ((ArrangeService) service).getCompletedArrange());
+        } catch (Exception e) {
+            throw new BackendException(this.name + " 검증 중 오류발생", e);
+        }
+    }
+
 }

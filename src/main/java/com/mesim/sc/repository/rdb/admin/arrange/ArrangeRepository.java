@@ -12,5 +12,6 @@ import java.util.List;
 public interface ArrangeRepository extends AdminRepository<Arrange, Integer> {
 
     Page<Arrange> findAll(Specification<Object> specification, Pageable pageable);
+    List<Arrange> findAllByStatus(String status);
 
 }
