@@ -33,7 +33,6 @@ public class FileUtil {
     public static String EVENTALYER_FILE_PATH;
     public static int BUF_SIZE = 1024 * 1024 * 100;
 
-
     @Value("${file.data.base.path}")
     public void setDefaultFilePath(String defaultFilePath) {
         FileUtil.DEFAULT_FILE_PATH = defaultFilePath;
@@ -104,7 +103,6 @@ public class FileUtil {
         } catch (IOException e) {
             throw new IOException("파일 저장 실패");
         }
-
     }
 
     public static boolean moveCsvFile(String path,String saveFileName, String tempFileName,String fileTempPath) throws IOException {

@@ -168,7 +168,7 @@ public class ArrangeService extends AdminService {
         ArrangeDto savedArrangeDto = (ArrangeDto) this.save(data);
 
         String filePath = FileUtil.makePath(this.fileBasePath, this.vocalPath, savedArrangeDto.getId());
-        String tempPath = FileUtil.makePath(this.fileBasePath, this.fileTempPath, userId);
+//        String tempPath = FileUtil.makePath(this.fileBasePath, this.fileTempPath, userId);
 
         try {
             for (MultipartFile file : files) {
