@@ -14,6 +14,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
@@ -87,6 +90,23 @@ public class FileUtil {
 
         return true;
     }
+
+
+    public static void saveFile(String filePath, String filename, MultipartFile file) throws IOException {
+        Path uploadPath = Paths.get(filePath);
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
+        }
+
+        try (InputStream inputStream = file.getInputStream()) {
+            Path realFilePath = uploadPath.resolve(filename);
+            Files.copy(inputStream, realFilePath, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new IOException("파일 저장 실패");
+        }
+
+    }
+
     public static boolean moveCsvFile(String path,String saveFileName, String tempFileName,String fileTempPath) throws IOException {
         File folder = new File(path);
 

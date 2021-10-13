@@ -7,9 +7,12 @@ import com.mesim.sc.repository.PageWrapper;
 import com.mesim.sc.repository.rdb.CrudRepository;
 import com.mesim.sc.repository.rdb.admin.AdminSpecs;
 import com.mesim.sc.repository.rdb.admin.arrange.Arrange;
+import com.mesim.sc.repository.rdb.admin.arrange.ArrangeRepository;
 import com.mesim.sc.repository.rdb.admin.code.Code;
 import com.mesim.sc.repository.rdb.admin.song.CreativeSong;
 import com.mesim.sc.repository.rdb.admin.song.CreativeSongRepository;
+import com.mesim.sc.repository.rdb.admin.user.User;
+import com.mesim.sc.repository.rdb.admin.user.UserRepository;
 import com.mesim.sc.repository.rdb.admin.vocal.Vocal;
 import com.mesim.sc.repository.rdb.admin.vocal.VocalRepository;
 import com.mesim.sc.service.admin.AdminService;
@@ -27,6 +30,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
@@ -168,7 +172,9 @@ public class ArrangeService extends AdminService {
 
         try {
             for (MultipartFile file : files) {
-                FileUtil.moveFile(filePath, file.getOriginalFilename(), tempPath);
+//                FileUtil.moveFile(filePath, file.getOriginalFilename(), tempPath);
+                String filename = StringUtils.cleanPath(file.getOriginalFilename());
+                FileUtil.saveFile(filePath, filename, file);
             }
         } catch (IOException e) {
             throw new BackendException("파일 업로드 중 오류 발생", e);
@@ -496,5 +502,11 @@ public class ArrangeService extends AdminService {
         return resultList;
     }
 
+    // 중복 조회
+    public boolean isDuplicated(String cd) throws BackendException {
+        Optional<Arrange> optArrange = ((ArrangeRepository) this.repository).findById(cd);
+        if (optArrange.isPresent()) return true;
+        return false;
+    }
 }
 

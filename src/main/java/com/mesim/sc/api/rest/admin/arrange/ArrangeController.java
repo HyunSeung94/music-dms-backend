@@ -6,6 +6,7 @@ import com.mesim.sc.exception.BackendException;
 import com.mesim.sc.service.CrudService;
 
 import com.mesim.sc.service.admin.arrange.ArrangeService;
+import com.mesim.sc.service.admin.user.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -13,6 +14,8 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import javax.print.attribute.standard.Media;
 
 @Slf4j
 @RestController
@@ -66,7 +69,6 @@ public class ArrangeController extends AdminRestController {
             throw new BackendException(this.name + " 등록 중 오류발생", e);
         }
     }
-
 
     /**
      *  파일 다운로드
@@ -143,6 +145,20 @@ public class ArrangeController extends AdminRestController {
             return new ApiResponseDto(true, ((ArrangeService) service).verificationApi());
         } catch (Exception e) {
             throw new BackendException(this.name + " 검증 중 오류발생", e);
+        }
+    }
+
+    /**
+     * 
+     * 중복 체크
+     */
+    @RequestMapping(value = "duplicate/{cd}", method = RequestMethod.GET, produces = MediaType.ALL_VALUE)
+    public ApiResponseDto checkDuplicated(@PathVariable("cd") String id) throws BackendException {
+        try {
+            boolean result = ((ArrangeService) this.service).isDuplicated(id);
+            return new ApiResponseDto(!result, null, "이미 등록되었습니다.");
+        } catch (Exception e) {
+            throw new BackendException(this.name + "중복 체크 중 오류발생", e);
         }
     }
 }

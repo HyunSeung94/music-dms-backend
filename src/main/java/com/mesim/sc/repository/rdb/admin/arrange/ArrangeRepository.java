@@ -7,9 +7,10 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
-public interface ArrangeRepository extends AdminRepository<Arrange, Integer> {
+public interface ArrangeRepository extends AdminRepository<Arrange, String> {
 
     Page<Arrange> findAll(Specification<Object> specification, Pageable pageable);
 

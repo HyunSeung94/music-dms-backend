@@ -23,7 +23,7 @@ public class Arrange extends CrudEntity {
 
     @Id
     @Column(name = "CONTENTS_CD")
-    private String id;;
+    private String id;
 
     @Column(name = "ARRANGER_CD")
     private String arrangerCd;
