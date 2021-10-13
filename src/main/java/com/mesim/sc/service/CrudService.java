@@ -1585,7 +1585,6 @@ public abstract class CrudService {
         String[] selectList = select.split(",");
         String[] selectStandardList = groupItem.split(",");
         String selectItem = "";
-        where = "";
 
         List<Object> list = new ArrayList<>();
         try {
@@ -1605,7 +1604,8 @@ public abstract class CrudService {
                         selectItem += ",";
                     }
                 }
-                String jpql = "SELECT " + selectItem + " FROM " + table + where;
+                String jpql = "SELECT " + selectItem + " FROM " + table ;
+                jpql += where != "undefined" ? where : "";
                 Query query = entityManager.createQuery(jpql, Object[].class);
                 query.getResultList().forEach(d -> list.add(d));
             }

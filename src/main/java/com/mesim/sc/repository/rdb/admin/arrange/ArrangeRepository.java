@@ -13,5 +13,6 @@ import java.util.Optional;
 public interface ArrangeRepository extends AdminRepository<Arrange, String> {
 
     Page<Arrange> findAll(Specification<Object> specification, Pageable pageable);
+    List<Arrange> findAllByStatus(String status);
 
 }

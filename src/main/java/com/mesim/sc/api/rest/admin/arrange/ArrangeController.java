@@ -161,4 +161,5 @@ public class ArrangeController extends AdminRestController {
             throw new BackendException(this.name + "중복 체크 중 오류발생", e);
         }
     }
+
 }

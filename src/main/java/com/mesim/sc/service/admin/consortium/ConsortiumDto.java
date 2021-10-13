@@ -20,6 +20,7 @@ public class ConsortiumDto extends AdminDto {
     protected String toneColor;
     protected String gender;
     protected String level;
+    private  int completed;
 
     public ConsortiumDto() {}
 
@@ -35,6 +36,9 @@ public class ConsortiumDto extends AdminDto {
         this.toneColor = entity.getToneColor();
         this.gender = entity.getGender();
         this.level = entity.getLevel();
+        if(this.groupId.equals("2")){
+
+        }
     }
 
     @Override
