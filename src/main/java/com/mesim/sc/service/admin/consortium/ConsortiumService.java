@@ -161,7 +161,7 @@ public class ConsortiumService extends AdminService {
             String id = dtoList.get(i).getId();
             int index = 0;
             for (int j=0; j<dtoList2.size(); j++){
-                if(id.contains(dtoList2.get(j).getId())){
+                if(id.equals(dtoList2.get(j).getId())){
                     index++;
                 };
             }

@@ -27,6 +27,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.PostConstruct;
@@ -189,11 +190,13 @@ public class VocalService extends AdminService {
         VocalDto savedVocalDto = (VocalDto) this.save(data);
 
         String filePath = FileUtil.makePath(this.fileBasePath, this.vocalPath, savedVocalDto.getId());
-        String tempPath = FileUtil.makePath(this.fileBasePath, this.fileTempPath, userId);
+//        String tempPath = FileUtil.makePath(this.fileBasePath, this.fileTempPath, userId);
 
         try {
             for (MultipartFile file : files) {
-                FileUtil.moveFile(filePath, file.getOriginalFilename(), tempPath);
+//                FileUtil.moveFile(filePath, file.getOriginalFilename(), tempPath);
+                String filename = StringUtils.cleanPath(file.getOriginalFilename());
+                FileUtil.saveFile(filePath, filename, file);
             }
         } catch (IOException e) {
             throw new BackendException("파일 업로드 중 오류 발생", e);

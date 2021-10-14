@@ -156,7 +156,7 @@ public class ArrangeController extends AdminRestController {
     public ApiResponseDto checkDuplicated(@PathVariable("cd") String id) throws BackendException {
         try {
             boolean result = ((ArrangeService) this.service).isDuplicated(id);
-            return new ApiResponseDto(!result, null, "이미 등록되었습니다.");
+            return new ApiResponseDto(!result, null, "이미 등록된 가공 데이터입니다.");
         } catch (Exception e) {
             throw new BackendException(this.name + "중복 체크 중 오류발생", e);
         }
