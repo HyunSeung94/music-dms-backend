@@ -1592,19 +1592,33 @@ public abstract class CrudService {
                 selectItem = "";
                 for (int j = 0; j < selectList.length; j++) {
 
+//                    if(selectList[j].equals("DANCE")){
+//                        selectItem += "count (CASE WHEN genre='댄스' THEN 1 END) AS DANCE";
+//                    }else if(selectList[j].equals("BALLADE")){
+//                        selectItem += "count (CASE WHEN genre='발라드' THEN 1 END) AS BALLADE";
+//                    }else if(selectList[j].equals("AGITATION")){
+//                        selectItem += "count (CASE WHEN genre='동요' THEN 1 END) AS AGITATION";
+//                    }
+
                     if(selectList[j].equals("DANCE")){
-                        selectItem += "count (CASE WHEN genre='댄스' THEN 1 END) AS DANCE";
+                        selectItem += "count (CASE WHEN genre='댄스' AND CONSORTIUM.role='칠로엔' THEN 1 END) AS DANCE, ";
+                        selectItem += "count (CASE WHEN genre='댄스' AND CONSORTIUM.role='음실련' THEN 1 END) AS DANCE";
                     }else if(selectList[j].equals("BALLADE")){
-                        selectItem += "count (CASE WHEN genre='발라드' THEN 1 END) AS BALLADE";
+                        selectItem += "count (CASE WHEN genre='발라드' AND CONSORTIUM.role='칠로엔' THEN 1 END) AS BALLADE, ";
+                        selectItem += "count (CASE WHEN genre='발라드' AND CONSORTIUM.role='음실련' THEN 1 END) AS BALLADE";
                     }else if(selectList[j].equals("AGITATION")){
-                        selectItem += "count (CASE WHEN genre='동요' THEN 1 END) AS AGITATION";
+                        selectItem += "count (CASE WHEN genre='동요' AND CONSORTIUM.role='칠로엔' THEN 1 END) AS AGITATION, ";
+                        selectItem += "count (CASE WHEN genre='동요' AND CONSORTIUM.role='음실련' THEN 1 END) AS AGITATION";
                     }
+
+
 
                     if (j != selectList.length - 1) {
                         selectItem += ",";
                     }
                 }
-                String jpql = "SELECT " + selectItem + " FROM " + table ;
+                String jpql = "SELECT " + selectItem + " FROM " + table + " AS SONG INNER JOIN TB_ADMIN_IT_CONSORTIUM " +
+                        "AS CONSORTIUM ON SONG.composerCd = CONSORTIUM.id" ;
                 jpql += where != "undefined" ? where : "";
                 Query query = entityManager.createQuery(jpql, Object[].class);
                 query.getResultList().forEach(d -> list.add(d));

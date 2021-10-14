@@ -74,7 +74,8 @@ public class ConsortiumService extends AdminService {
                 selectItem = "";
                 for (int j = 0; j < selectList.length; j++) {
 
-                    selectItem += "sum("+selectList[j].toLowerCase()+")";
+                    selectItem += "sum( CASE WHEN role='칠로엔' THEN "+selectList[j].toLowerCase()+" END),";
+                    selectItem += "sum( CASE WHEN role='음실련' THEN "+selectList[j].toLowerCase()+" END)";
 
                     if (j != selectList.length - 1) {
                         selectItem += ", ";
