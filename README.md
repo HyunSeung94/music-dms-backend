@@ -1,6 +1,6 @@
-### Smart-City Platform Backend
+### MusicDMS Platform Backend
 
-This Project is Smart-City Platform Backend Project.
+This Project is MusicDMS Platform Backend Project.
 
 
 
